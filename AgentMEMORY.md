@@ -1,5 +1,5 @@
 # AgentMEMORY — SlaveMobil (S/_ave)
-Aktualizováno: 2026-11-03 17:19
+Aktualizováno: 2026-11-03 17:35
 
 ## Cíl repa
 Android appka Slave (Capacitor): Kalendář, Tabulky (mini Excel) a Příkaz pro PC. Data v localStorage
@@ -19,7 +19,9 @@ a synchronizovaná přes Supabase s PC (`pc/most.mjs` provádí příkazy z tele
 ## Supabase (od 2026-11-03)
 - Projekt https://tvttqesgnzzrtfecrqjt.supabase.co; URL + publishable klíč v `.env.local` (gitignored, ale build je
   zapéká do OTA balíku → veřejné na GitHubu; publishable klíč je k tomu určený, data hlídá RLS + přihlášení).
-- Schéma `supabase/schema.sql` (tabulky, udalosti, prikazy; RLS user_id = auth.uid(); realtime). Spouští se ručně v SQL Editoru.
+- Schéma `supabase/schema.sql` (tabulky, udalosti, prikazy; RLS user_id = auth.uid(); realtime) - v projektu SPUŠTĚNO
+  2026-11-03 (SQL Editor přes Chrome, monaco setValue). Účet: registrace z appky (Nastavení → Vytvořit účet), Supabase
+  vyžaduje potvrzení e-mailem; po založení účtu doporučeno vypnout registrace v dashboardu.
 - Telefon: `src/lib/sync.ts` tříbodové sloučení (místní / vzdálené / základ `slave:sync:<kolekce>`), při konfliktu vyhraje PC;
   běží po uložení, při startu, návratu do appky a na realtime. Přihlášení v Nastavení → Synchronizace s PC.
 - PC: `npm run most` (pc/most.mjs) - fronta `prikazy` → `claude -p` s `pc/navod.md`, smí jen `Bash(node pc/db.mjs:*)`;
@@ -73,6 +75,8 @@ a synchronizovaná přes Supabase s PC (`pc/most.mjs` provádí příkazy z tele
   (to dávalo tyrkysovou a zelenavé pozadí). Ikony/splash přes `npm run android:assets`.
 
 ## Log (posledních ~30)
+- 2026-11-03 17:35 — „hoď tam data“ → schéma spuštěno v Supabase; účet chybí → na přání uživatele registrace z appky, OTA balík.
+  Tabulka Kontakty pořád NEZALOŽENÁ (čeká na účet + pc/.env).
 - 2026-11-03 17:19 — příkazy z telefonu na PC přes Supabase + synchronizace tabulek/kalendáře → schéma, sync (8 testů), záložka
   Příkaz, Nastavení přihlášení, pc/most.mjs + db.mjs; OTA balík 2026.11.03.16.15. E2E NEOVĚŘENO: v Supabase chybí
   schéma a uživatel; tabulka Kontakty (id, jméno, telefon, status, web) se má založit příkazem z telefonu.

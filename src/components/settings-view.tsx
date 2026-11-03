@@ -179,6 +179,26 @@ function SyncCard() {
     setZprava("Přihlášeno, data se synchronizují.");
   };
 
+  // Registrace přímo z appky. Se zapnutým potvrzováním e-mailu Supabase relaci nevrátí - nejdřív odkaz v e-mailu.
+  const registrovat = async () => {
+    setPrace(true);
+    setZprava("");
+    ulozPripojeni({ url, klic });
+    const sb = klient();
+    if (!sb) {
+      setPrace(false);
+      return setZprava("Adresa musí začínat https:// a klíč nesmí chybět.");
+    }
+    const { data, error } = await sb.auth.signUp({ email: email.trim(), password: heslo });
+    setPrace(false);
+    if (error) return setZprava(`Účet se nepodařilo vytvořit: ${error.message}`);
+    if (!data.session) return setZprava("Účet je vytvořený. Potvrď ho odkazem v e-mailu a pak se tady přihlas.");
+    setHeslo("");
+    setKdo(data.user?.email ?? email);
+    await obnovSync();
+    setZprava("Účet vytvořený a přihlášený, data se synchronizují.");
+  };
+
   const odhlasit = async () => {
     await klient()?.auth.signOut();
     zapomenSync();
@@ -224,9 +244,15 @@ function SyncCard() {
             <Field label="Heslo" htmlFor="sb-heslo">
               <Input id="sb-heslo" type="password" value={heslo} onChange={(e) => setHeslo(e.target.value)} autoComplete="current-password" className="h-11" />
             </Field>
-            <Button variant="brand" className="h-11 self-start" disabled={prace || !email || !heslo} onClick={() => void prihlasit()}>
-              {prace ? "Přihlašuji…" : "Přihlásit"}
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="brand" className="h-11" disabled={prace || !email || !heslo} onClick={() => void prihlasit()}>
+                {prace ? "Pracuji…" : "Přihlásit"}
+              </Button>
+              <Button variant="outline" className="h-11" disabled={prace || !email || heslo.length < 6} onClick={() => void registrovat()}>
+                Vytvořit účet
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">Nový účet: vyplň e-mail a heslo (aspoň 6 znaků) a dej Vytvořit účet.</p>
             <details className="text-xs">
               <summary className="flex min-h-11 cursor-pointer items-center text-muted-foreground">
                 Projekt {url ? url.replace(/^https:\/\//, "") : "(nevyplněný)"}
