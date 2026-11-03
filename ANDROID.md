@@ -1,0 +1,184 @@
+# Slave jako Android appka
+
+Appka běží v telefonu ze souborů v APK. Není to zástupce na web - nativní obal
+(Capacitor) drží WebView, splash screen, ikonu, stavovou lištu, hardwarové
+tlačítko Zpět, vibrace, rozpoznávání řeči a předčítání. Po síti mluví jen se
+sidecarem Slave na PC.
+
+Nativní kostra, build skripty a postupy jsou převzaté z MicroWins a mpL (to, co
+mají obě společné). Tenhle soubor je pro toho, kdo appku staví a vydává.
+
+## Co je kde
+
+| Cesta | Co to je |
+|---|---|
+| `capacitor.config.ts` | ID appky (`cz.slave.mobil`), jméno, barvy, `androidScheme: "http"` |
+| `android/` | nativní projekt (Gradle). Generuje ho Capacitor, ruční úpravy přežijí |
+| `android/app/src/main/AndroidManifest.xml` | oprávnění (internet, mikrofon), cleartext, `<queries>` pro řeč, appka jen na výšku |
+| `android/app/src/main/java/cz/slave/mobil/` | `MainActivity` (bez vlastních pluginů) |
+| `android/app/src/main/res/` | ikony, splash, barvy a témata |
+| `scripts/android-assets.mjs` | generátor ikon, splashe a loga v appce z `assets/logo_mark.svg` |
+| `scripts/gradle.mjs` | spustí Gradle s JDK z `gradle.properties` a obchvatem unixových socketů |
+| `scripts/release.mjs` | postaví web s číslem verze (a OTA balík, až bude OTA zapnuté) |
+| `scripts/sign-apk.mjs` | podepíše release APK klíčem z `android/keystore.properties` |
+| `src/lib/native.ts` | most do nativní vrstvy (haptika, lišta, splash, tlačítko Zpět) |
+| `src/lib/voice.ts` | diktování (`@capacitor-community/speech-recognition`) a předčítání (`@capacitor-community/text-to-speech`), obojí `cs-CZ` |
+| `src/lib/settings.ts`, `api.ts`, `socket.ts`, `protocol.ts` | spárování, HTTP API a WebSocket sidecaru |
+| `src/lib/live-update.ts` | živé aktualizace (OTA) - **vypnuté**, viz níž |
+| `out/` | statický export webu, který se do APK kopíruje |
+
+## Nástroje na tomhle počítači
+
+Nic z toho není nainstalované v systému - leží to vedle sebe v `C:\Android`
+a build si na to sáhne sám.
+
+- Android SDK: `C:\Android\sdk`, ADB: `C:\Android\sdk\platform-tools\adb.exe`
+  - cesta je v `android/local.properties` **lomítky dopředu** -
+    `sdk.dir=C:\Android\sdk` se v Java properties přečte jako `C:Androidsdk`.
+    Soubor je mimo git, v čerstvém klonu ho dopiš:
+
+    ```
+    sdk.dir=C:/Android/sdk
+    ```
+- JDK 21: `C:\Android\jdk\jdk-21.0.12+8`
+  - Capacitor 8 se kompiluje na Javu 21; build si vlastní JDK bere přes
+    `org.gradle.java.home` v `android/gradle.properties`
+- Unixové sockety v `%LOCALAPPDATA%\Temp` tu bezpečnostní filtr zahazuje
+  a Gradle pak padá na „Unable to establish loopback connection".
+  `scripts/gradle.mjs` proto nastaví `-Djdk.net.unixdomain.tmpdir=C:/Android/gradle-tmp`
+  (řešení z MicroWins). mpL má na totéž javového agenta `uds-off`; tady
+  zatím nebyl potřeba.
+
+## Sestavení APK
+
+```bash
+npm run android:apk
+```
+
+Postaví web s číslem verze, zkopíruje ho do `android/` (`cap sync`) a pustí
+Gradle. Výsledek je `android/app/build/outputs/apk/debug/app-debug.apk`,
+podepsaný debug klíčem tohohle počítače (`%USERPROFILE%\.android\debug.keystore`).
+
+Build na Windows někdy zamrzne (antivirus, přejmenování složky v mezipaměti
+Gradlu). Když se log přes pár minut nehne, zabij Gradle
+(`taskkill /F /IM java.exe` - pozor, zabije i jiné Javy) a pusť build znovu.
+
+`versionCode` jsou minuty od epochy a `versionName` časové razítko buildu
+(`android/app/build.gradle`) - každý build je novější než předchozí, takže ho
+Android vezme jako aktualizaci a nechá data (spárování) být.
+
+## Instalace do telefonu
+
+Přes kabel, když je v telefonu zapnuté ladění USB:
+
+```bash
+C:\Android\sdk\platform-tools\adb.exe install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+Bez kabelu: APK zkopírovat do telefonu a otevřít ho tam. Android se zeptá na
+povolení instalovat z tohoto zdroje - jednorázově potvrď. Play Protect hlásí
+„Neznámá aplikace" - *Další podrobnosti → Přesto nainstalovat*.
+
+## Spojení s PC
+
+- Na PC: Slave → Nastavení → Telefon → *Povolit přístup z telefonu*, restart
+  Slave (sidecar pak poslouchá na `0.0.0.0`). Windows se zeptá na firewall -
+  povol jen soukromé sítě.
+- Do appky opiš adresu, port a token. Token je base32 ve skupinách
+  `XXXX-XXXX-…`; appka zahodí pomlčky a mezery a převede ho na velká písmena.
+- **Origin.** WebView appky běží na `http://localhost`: `server.androidScheme:
+  "http"` v `capacitor.config.ts`, hostname zůstává výchozí `localhost`
+  (ověřeno v `@capacitor/android` 8.6.0, `Bridge.java`: `localUrl = scheme +
+  "://" + host`). `CapacitorHttp` je vypnutý (výchozí), takže `fetch` i
+  WebSocket jdou přes WebView a posílají `Origin: http://localhost` - přesně
+  ten, který sidecar pouští (`mobil.ORIGIN`).
+- **Cleartext.** Sidecar je v LAN na obyčejném `http://` / `ws://`, proto
+  `android:usesCleartextTraffic="true"` v manifestu. Mimo domov používej
+  Tailscale (šifruje); na cizí Wi-Fi přístup nezapínej.
+- HTTP požadavky nesou hlavičku `x-agent-token`, takže prohlížeč nejdřív pošle
+  preflight `OPTIONS` - odbavuje ho `CORSMiddleware` sidecaru.
+- Mobilní token smí jen `/ws`, `/api/dashboard`, `/api/kalendar`,
+  `/api/limity`. Appka nic jiného nevolá.
+
+**Pozor na data:** `localStorage` (spárování, téma) patří k originu. Změna
+`androidScheme` nebo `hostname` by uložené spárování schovala - uživatel by
+token opisoval znovu.
+
+## Živé aktualizace (OTA) - vypnuté
+
+Mechanismus je stejný jako v MicroWins a mpL (`src/lib/live-update.ts`,
+záchranný skript v `src/app/layout.tsx`, `scripts/release.mjs`), ale dokud
+appka nemá vlastní repozitář s releasy, je vypnutý: `DEFAULT_UPDATE_URL` je
+prázdný, `checkForUpdate()` vrací `disabled` a `release.mjs` balík do `ota/`
+nedělá.
+
+Zapnutí, až bude repo na GitHubu (např. `<vlastník>/SlaveMobil`, veřejné -
+raw a API musí jít bez přihlášení):
+
+1. V `src/lib/live-update.ts` nastavit
+   `DEFAULT_UPDATE_URL = "https://api.github.com/repos/<vlastník>/SlaveMobil/contents/ota/latest.json?ref=main"`
+   a `FALLBACK_UPDATE_URL = "https://raw.githubusercontent.com/<vlastník>/SlaveMobil/main/ota/latest.json"`.
+2. V `scripts/release.mjs` nastavit
+   `OTA_RAW_BASE = "https://raw.githubusercontent.com/<vlastník>/SlaveMobil/main/ota"`.
+3. Postavit a nainstalovat nové APK (to už si o aktualizace říká).
+4. Každá další verze webu: `npm run ota:bundle` → commit `ota/` → push.
+   Telefon si balík stáhne při startu a nasadí **při dalším otevření**.
+
+Co OTA neumí: nativní část (nový plugin, oprávnění, ikona, `targetSdk`). Na
+to je potřeba nové APK.
+
+## Změna ikony nebo splashe
+
+Zdroj je jediný soubor: `assets/logo_mark.svg` - jantarové jádro (`#f5a524`)
+na **průhledném** pozadí. Po jeho výměně:
+
+```bash
+npm run android:assets
+```
+
+Vygeneruje ikony pro launcher (adaptivní i monochromatickou vrstvu pro
+tématické ikony na Androidu 13+), splash ve všech hustotách a logo do
+hlavičky (`src/lib/logo-image.ts` - generovaný soubor, needitovat ručně).
+Pozadí ikony i splashe je obsidián `#09090B`, stejný jako `--background`
+v tmavém režimu a `capacitor.config.ts` - jinak by mezi splashem a appkou bliklo.
+
+## Podpisový klíč
+
+Debug APK je podepsané debug klíčem tohohle počítače
+(`%USERPROFILE%\.android\debug.keystore`). **Ten soubor zálohuj** - Android
+považuje appku podepsanou jiným klíčem za jinou appku a aktualizace by šla
+jen odinstalací (spárování by se ztratilo).
+
+Release (`npm run android:release`) potřebuje vlastní klíč, který v gitu
+**není a nesmí být** (`*.jks`, `android/keystore.properties` jsou v
+`.gitignore`). Založení:
+
+```bash
+C:\Android\jdk\jdk-21.0.12+8\bin\keytool.exe -genkeypair -v -keystore android/slave.jks -alias slave -keyalg RSA -keysize 2048 -validity 10000
+```
+
+a `android/keystore.properties`:
+
+```
+storeFile=slave.jks
+storePassword=<heslo>
+keyAlias=slave
+keyPassword=<heslo>
+```
+
+Výsledek `npm run android:release` je podepsaný `Slave.apk` v kořeni (mimo
+git - APK patří do GitHub Releases). Přechod z debug na release klíč znamená
+v telefonu odinstalaci a nové spárování.
+
+## Pozor při vývoji
+
+- Jediná stránka, záložky jsou stav (`app-shell.tsx`): spojení s PC žije
+  v `SlaveProvider` a přepnutí záložky ho nesmí přerušit.
+- Každá změna webu se do appky dostane až přes `cap sync android`.
+  Samotný `next build` na APK nesáhne.
+- `npm run build` za běhu dev serveru rozbije dev appku v prohlížeči -
+  server napřed zastav.
+- Pluginy předčítání se registrují přes `registerPlugin` (jako v mpL):
+  `@capacitor-community/text-to-speech` při importu sahá na `window` a shodil
+  by prerender.
+- Appka je jen na výšku (`screenOrientation="portrait"` v manifestu).

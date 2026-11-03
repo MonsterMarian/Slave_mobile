@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Jádro Slave: jantarová koule se září na průhledném pozadí. Zdroj pro npm run android:assets. -->
+  <defs>
+    <radialGradient id="glow" cx="512" cy="512" r="440" gradientUnits="userSpaceOnUse">
+      <stop offset="0.55" stop-color="#f5a524" stop-opacity="0.45"/>
+      <stop offset="0.75" stop-color="#f5a524" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#f5a524" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="core" cx="430" cy="400" r="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffe7b0"/>
+      <stop offset="0.35" stop-color="#f9bd4a"/>
+      <stop offset="0.75" stop-color="#f5a524"/>
+      <stop offset="1" stop-color="#b86a08"/>
+    </radialGradient>
+  </defs>
+  <circle cx="512" cy="512" r="440" fill="url(#glow)"/>
+  <circle cx="512" cy="512" r="300" fill="url(#core)"/>
+  <ellipse cx="420" cy="380" rx="90" ry="55" fill="#fff6dd" fill-opacity="0.55" transform="rotate(-30 420 380)"/>
+</svg>
