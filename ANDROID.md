@@ -59,6 +59,11 @@ Postaví web s číslem verze, zkopíruje ho do `android/` (`cap sync`) a pustí
 Gradle. Výsledek je `android/app/build/outputs/apk/debug/app-debug.apk`,
 podepsaný debug klíčem tohohle počítače (`%USERPROFILE%\.android\debug.keystore`).
 
+Release verze je `Slave.apk` v kořeni (`npm run android:release`, podpis
+v1 + v2 + v3, viz *Podpisový klíč*). **Do telefonu dávej jen jednu z nich** -
+debug a release mají jiný klíč a jedna přes druhou se nenainstaluje bez
+odinstalace. Doporučeně release.
+
 Build na Windows někdy zamrzne (antivirus, přejmenování složky v mezipaměti
 Gradlu). Když se log přes pár minut nehne, zabij Gradle
 (`taskkill /F /IM java.exe` - pozor, zabije i jiné Javy) a pusť build znovu.
@@ -151,7 +156,15 @@ jen odinstalací (spárování by se ztratilo).
 
 Release (`npm run android:release`) potřebuje vlastní klíč, který v gitu
 **není a nesmí být** (`*.jks`, `android/keystore.properties` jsou v
-`.gitignore`). Založení:
+`.gitignore`).
+
+Na tomhle počítači klíč **už je** (založený 3. 11. 2026): `android/slave.jks`,
+alias `slave`, náhodné heslo jen v `android/keystore.properties`. Certifikát
+SHA-256 `13a6903999e6ef36bc1dfc2200a243966ff96b24910022dc5e80124eda67914f`.
+**Oba soubory zálohuj mimo repo** (např. do správce hesel) - bez nich nejde
+vydat aktualizaci release verze, jen odinstalovat a spárovat znovu.
+
+Založení na jiném počítači (nový klíč = jiná appka pro Android):
 
 ```bash
 C:\Android\jdk\jdk-21.0.12+8\bin\keytool.exe -genkeypair -v -keystore android/slave.jks -alias slave -keyalg RSA -keysize 2048 -validity 10000
