@@ -1,5 +1,5 @@
 # AgentMEMORY — SlaveMobil
-Aktualizováno: 2026-11-03 11:18
+Aktualizováno: 2026-11-03 11:27
 
 ## Cíl repa
 Android appka Slave (Capacitor). Teď (2026-11-03) **offline**: Kalendář a Tabulky (mini Excel),
@@ -51,3 +51,4 @@ data jen v telefonu. Dřív klient k PC (Rozhovor / Přehled / spárování) - k
 - 2026-11-03 11:08 — appka bez PC: Kalendář + Tabulky offline, testy a build zelené.
 - 2026-11-03 11:11 — nové logo appky (oko z Gemini) přes skript, ikony a splash přegenerované.
 - 2026-11-03 11:18 — Nastavení do hlavičky, OTA z GitHubu, remote origin, docs.
+- 2026-11-03 11:27 — test na telefonu: kalendář, tabulky, force-stop OK; oprava: vybraná buňka se posune do zobrazení, české uvozovky; OTA balík 2026.11.03.10.26.

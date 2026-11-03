@@ -126,7 +126,7 @@ function UdalostDialog({
         otevreno={mazat}
         onZavrit={() => setMazat(false)}
         titulek="Smazat událost?"
-        text={`„${u.nazev}" se smaže z kalendáře.`}
+        text={`„${u.nazev}“ se smaže z kalendáře.`}
         onPotvrdit={() => onSmazat(u)}
       />
     </Dialog>

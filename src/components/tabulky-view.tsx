@@ -8,6 +8,8 @@ import { MAX_RADKU, mrizka, nactiTabulky, nastavBunku, novaTabulka, novyList, ro
 import { Chyba, formatuj, nazevSloupce, spocitej } from "@/lib/vzorce";
 import { cn } from "@/lib/utils";
 
+// shortcut: tvrdé zabití procesu (force-stop, pád) do 400 ms po posledním znaku ho ztratí; běžné zavření
+// a přepnutí appky ukládá hned (visibilitychange). Ukládat bez zpoždění, kdyby to vadilo.
 const ULOZIT_PO_MS = 400;
 
 /**
@@ -70,6 +72,12 @@ function Editor({
   const raw = list.bunky[`${sel[0]},${sel[1]}`] ?? "";
   const [prejmenovat, setPrejmenovat] = React.useState(false);
   const pole = React.useRef<HTMLInputElement>(null);
+  const mrizkaRef = React.useRef<HTMLDivElement>(null);
+
+  // Vybraná buňka (i po Enteru pod okraj) musí být vidět; scroll-margin ji drží mimo sticky záhlaví.
+  React.useEffect(() => {
+    mrizkaRef.current?.querySelector("[data-vybrana]")?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [sel, list.id]);
 
   const { radky, sloupce } = rozmer(list);
   const hodnoty = React.useMemo(() => spocitej(mrizka(list)), [list]);
@@ -137,7 +145,7 @@ function Editor({
       </div>
 
       {/* shortcut: vykresluje se celá mřížka (až 1000 × 100), ne jen viditelná část - virtualizovat, až to bude na telefonu pomalé. */}
-      <div className="min-h-0 flex-1 overflow-auto overscroll-none">
+      <div ref={mrizkaRef} className="min-h-0 flex-1 overflow-auto overscroll-none">
         <table className="tabular border-separate border-spacing-0 text-sm">
           <thead>
             <tr>
@@ -173,8 +181,9 @@ function Editor({
                     <td
                       key={c}
                       onClick={() => vyber(r, c)}
+                      data-vybrana={on || undefined}
                       className={cn(
-                        "h-11 max-w-21 min-w-21 truncate border-b border-r px-1.5",
+                        "h-11 max-w-21 min-w-21 scroll-mt-8 scroll-ml-10 truncate border-b border-r px-1.5",
                         typeof v === "number" && "text-right",
                         v instanceof Chyba && "text-destructive",
                         on && "outline-2 -outline-offset-2 outline-brand",
@@ -303,7 +312,7 @@ export function TabulkyView({ otevrena, setOtevrena }: { otevrena: string | null
         otevreno={smazat !== null}
         onZavrit={() => setSmazat(null)}
         titulek="Smazat tabulku?"
-        text={smazat ? `„${smazat.nazev}" se smaže i se všemi listy. Nejde to vrátit.` : undefined}
+        text={smazat ? `„${smazat.nazev}“ se smaže i se všemi listy. Nejde to vrátit.` : undefined}
         onPotvrdit={() => smazat && setTabulky((all) => all.filter((t) => t.id !== smazat.id))}
       />
     </div>
