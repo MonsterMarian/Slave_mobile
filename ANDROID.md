@@ -1,4 +1,4 @@
-# Slave jako Android appka
+# S/_ave (Slave) jako Android appka
 
 Appka běží v telefonu ze souborů v APK. Není to zástupce na web - nativní obal
 (Capacitor) drží WebView, splash screen, ikonu, stavovou lištu, hardwarové
@@ -158,8 +158,8 @@ npm run android:assets
 Ikona a splash jsou nativní - po změně je potřeba nové APK, OTA nestačí.
 
 Vygeneruje ikony pro launcher (adaptivní i monochromatickou vrstvu pro
-tématické ikony na Androidu 13+), splash ve všech hustotách a logo do
-hlavičky (`src/lib/logo-image.ts` - generovaný soubor, needitovat ručně).
+tématické ikony na Androidu 13+), splash ve všech hustotách a `src/lib/logo-image.ts`
+(logo jako data URI; od 2026-11-03 ho UI nepoužívá - hlavička má wordmark S/_ave).
 Pozadí ikony i splashe je obsidián `#09090B`, stejný jako `--background`
 v tmavém režimu a `capacitor.config.ts` - jinak by mezi splashem a appkou bliklo.
 

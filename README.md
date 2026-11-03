@@ -1,4 +1,4 @@
-# Slave pro Android
+# S/_ave pro Android
 
 Appka Slave pro telefon. **Teď funguje bez PC** (rozhodnuto 2026-11-03), data jsou
 jen v telefonu:
@@ -7,7 +7,8 @@ jen v telefonu:
    přidat, upravit, smazat.
 2. **Tabulky** - malý Excel: tabulky s listy, vzorce (`=SUM(A1:A3)`, `IF`,
    `AVERAGE`, `ROUND`…), ukládá se samo.
-3. **Nastavení** (ozubené kolo vpravo nahoře) - tmavý režim, aktualizace z GitHubu.
+3. **Nastavení** (ozubené kolo vpravo nahoře) - tmavý režim, barva akcentu
+   (rozbor v [`docs/barvy.md`](docs/barvy.md)), aktualizace z GitHubu.
 
 Spojení s PC (rozhovor, přehled, spárování) je v UI vypnuté; kód zůstal
 (`shortcut:` komentáře) a vrátí se, až bude potřeba.

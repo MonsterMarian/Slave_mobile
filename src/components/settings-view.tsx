@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ArrowLeft, RefreshCw } from "lucide-react";
+import { ArrowLeft, Check, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import {
   pendingBundleVersion,
   setUpdateUrl,
 } from "@/lib/live-update";
+import { getAkcent, getServerAkcent, PALETY, setAkcent, subscribeAkcent } from "@/lib/barvy";
 import { getServerTheme, getTheme, setTheme, subscribeTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +36,44 @@ function ToggleRow({ label, hint, on, onToggle }: { label: string; hint?: string
       </span>
       <SwitchPill on={on} />
     </button>
+  );
+}
+
+/** Výběr akcentu: kolečko v barvě pro aktuální režim, pod ním název; náhled hned. */
+function BarvaVolba({ dark }: { dark: boolean }) {
+  const akcent = React.useSyncExternalStore(subscribeAkcent, getAkcent, getServerAkcent);
+  return (
+    <div className="flex flex-col gap-2 pt-2">
+      <span className="text-sm font-medium">Barva</span>
+      <div className="grid grid-cols-4 gap-x-1 gap-y-3">
+        {PALETY.map((p) => {
+          const v = dark ? p.tmava : p.svetla;
+          const on = p.id === akcent;
+          return (
+            <button
+              key={p.id}
+              type="button"
+              aria-pressed={on}
+              onClick={() => setAkcent(p.id)}
+              className="flex min-w-0 flex-col items-center gap-1 text-center"
+            >
+              <span
+                className={cn(
+                  "flex size-11 items-center justify-center rounded-full",
+                  on && "ring-2 ring-foreground ring-offset-2 ring-offset-card",
+                )}
+                style={{ backgroundColor: v.akcent, color: v.text }}
+              >
+                {on ? <Check className="size-5" /> : null}
+              </span>
+              <span className={cn("text-[11px] leading-tight", on ? "text-foreground" : "text-muted-foreground")}>
+                {p.nazev}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -163,6 +202,7 @@ export function SettingsView({ onZpet }: { onZpet: () => void }) {
             on={theme === "dark"}
             onToggle={() => setTheme(theme === "dark" ? "light" : "dark")}
           />
+          <BarvaVolba dark={theme === "dark"} />
         </CardContent>
       </Card>
 

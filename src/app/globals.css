@@ -3,8 +3,10 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Paleta shadcn/ui (zinc) jako v MicroWins a mpL. Jediný barevný akcent je
- * jantar Slave (#f5a524) - stejná barva jako jádro na PC a ikona appky.
+ * Paleta shadcn/ui (zinc) jako v MicroWins a mpL. Jediný barevný akcent
+ * (--brand) si uživatel volí v Nastavení: hodnoty jsou v src/lib/barvy.ts,
+ * CSS z nich generuje layout.tsx (html[data-accent=…]). Tady je jen záloha
+ * = výchozí S/_ave modrá. Rozbor v docs/barvy.md.
  */
 :root {
   --radius: 0.625rem;
@@ -27,10 +29,11 @@
   --input: oklch(0.92 0.004 286.32);
   --ring: oklch(0.705 0.015 286.067);
 
-  --brand: #f5a524;
-  --brand-foreground: oklch(0.17 0.02 60);
-  --brand-muted: oklch(0.96 0.035 75);
-  --brand-muted-foreground: oklch(0.46 0.11 55);
+  --brand: #0369a1;
+  --brand-foreground: #ffffff;
+  /* accent-soft: akcent ~15 % do pozadí, neprůhledně (sticky záhlaví tabulky přes něj nesmí prosvítat) */
+  --brand-muted: color-mix(in srgb, var(--brand) 15%, var(--background));
+  --brand-muted-foreground: var(--brand);
 }
 
 .dark {
@@ -53,10 +56,10 @@
   --input: oklch(1 0 0 / 16%);
   --ring: oklch(0.552 0.016 285.938);
 
-  --brand: #f5a524;
-  --brand-foreground: oklch(0.17 0.02 60);
-  --brand-muted: oklch(0.32 0.06 66);
-  --brand-muted-foreground: oklch(0.88 0.09 75);
+  --brand: #38bdf8;
+  --brand-foreground: #09090b;
+  --brand-muted: color-mix(in srgb, var(--brand) 15%, var(--background));
+  --brand-muted-foreground: var(--brand);
 }
 
 @theme inline {

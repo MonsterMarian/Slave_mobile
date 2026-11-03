@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { ACCENT_KEY, akcentCss, VYCHOZI_AKCENT } from "@/lib/barvy";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Slave",
+  title: "S/_ave",
   description: "Slave v telefonu: kalendář a tabulky.",
 };
 
@@ -19,8 +20,8 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-/** Nastaví téma před prvním paintem, aby neproblikl světlý podklad. */
-const themeScript = `try{var d=document.documentElement;var t=localStorage.getItem("slave:theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme: dark)").matches))d.classList.add("dark")}catch(e){}`;
+/** Nastaví téma a akcent před prvním paintem, aby neproblikl světlý podklad ani jiná barva. */
+const themeScript = `try{var d=document.documentElement;d.dataset.accent="${VYCHOZI_AKCENT}";var t=localStorage.getItem("slave:theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme: dark)").matches))d.classList.add("dark");var a=localStorage.getItem("${ACCENT_KEY}");if(a&&/^[a-z]+$/.test(a))d.dataset.accent=a}catch(e){}`;
 
 /**
  * Záchranná brzda živých aktualizací (stejná jako v MicroWins a mpL).
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="cs" suppressHydrationWarning>
       <head>
+        <style dangerouslySetInnerHTML={{ __html: akcentCss() }} />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <script dangerouslySetInnerHTML={{ __html: rescueScript }} />
       </head>

@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { SettingsView } from "@/components/settings-view";
 import { TabulkyView } from "@/components/tabulky-view";
 import { applyPendingUpdate, checkForUpdate, markBootSucceeded } from "@/lib/live-update";
-import { logoImage } from "@/lib/logo-image";
 import { hideSplash, isNative, registerBackButton, syncStatusBar } from "@/lib/native";
 import { cn } from "@/lib/utils";
 
@@ -77,12 +76,13 @@ export function AppShell() {
     <div className={cn("flex h-dvh flex-col", native && "select-none")}>
       <header className="mw-safe-top mw-safe-x border-b bg-background/85 backdrop-blur">
         <div className="mx-auto flex h-14 w-full max-w-2xl items-center gap-3 px-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={logoImage} alt="" className="size-8 object-contain" />
-          <span className="flex-1 text-base font-semibold tracking-tight">Slave</span>
+          {/* Wordmark slashunderscore: „/_" v akcentu, logo je jen na ikoně a splashi. */}
+          <span className="flex-1 text-lg font-semibold tracking-tight" aria-label="Slave">
+            S<span className="text-brand">/_</span>ave
+          </span>
           <Button
-            variant={tab === "nastaveni" ? "secondary" : "ghost"}
-            className="-mr-2 size-11"
+            variant="ghost"
+            className={cn("-mr-2 size-11", tab === "nastaveni" && "bg-brand-muted text-brand")}
             aria-label="Nastavení"
             aria-pressed={tab === "nastaveni"}
             onClick={doNastaveni}
@@ -121,7 +121,7 @@ export function AppShell() {
                 <span
                   className={cn(
                     "flex h-8 w-14 items-center justify-center rounded-full transition-colors",
-                    on && "bg-secondary",
+                    on && "bg-brand-muted text-brand",
                   )}
                 >
                   <Icon className="size-5" />

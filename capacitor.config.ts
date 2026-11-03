@@ -7,7 +7,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
  */
 const config: CapacitorConfig = {
   appId: "cz.slave.mobil",
-  appName: "Slave",
+  appName: "S/_ave",
   webDir: "out",
   server: {
     /*

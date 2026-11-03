@@ -201,7 +201,7 @@ export function KalendarView() {
               className={cn(
                 "flex h-14 min-w-0 flex-col items-center gap-1 bg-background pt-1.5",
                 cizi && "text-muted-foreground/60",
-                k === vybrany && "bg-secondary",
+                k === vybrany && "bg-brand-muted",
               )}
             >
               <span

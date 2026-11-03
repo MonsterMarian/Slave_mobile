@@ -1,5 +1,5 @@
-# AgentMEMORY — SlaveMobil
-Aktualizováno: 2026-11-03 11:27
+# AgentMEMORY — SlaveMobil (S/_ave)
+Aktualizováno: 2026-11-03 11:37
 
 ## Cíl repa
 Android appka Slave (Capacitor). Teď (2026-11-03) **offline**: Kalendář a Tabulky (mini Excel),
@@ -24,6 +24,8 @@ data jen v telefonu. Dřív klient k PC (Rozhovor / Přehled / spárování) - k
 
 - 2026-11-03 — Nastavení vpravo nahoře (ozubené kolo), OTA z GitHubu zapnuté (repo MonsterMarian/Slave_mobile).
 
+- 2026-11-03 — Jméno S/_ave (wordmark v hlavičce bez loga, appName, strings.xml, title); volba akcentu (7 barev).
+
 ## Rozpracováno
 - (nic)
 
@@ -47,8 +49,16 @@ data jen v telefonu. Dřív klient k PC (Rozhovor / Přehled / spárování) - k
 - 2026-11-03 — `OTA_RAW_BASE` v release.mjs je BEZ lomítka na konci (skript přidává `/bundle-…`).
 - 2026-11-03 — Hláška „Máš nejnovější verzi" podle opravy mpL 5d58c02: když balík čeká, říká „stačí ji nasadit".
 
+- 2026-11-03 — Jméno appky je **S/_ave** (firma slashunderscore), wordmark `S` + `/_` v akcentu + `ave`.
+  Logo jen na ikoně a splashi, ne v hlavičce. Změna appName/strings.xml = nové APK.
+- 2026-11-03 — Akcent: `src/lib/barvy.ts` (PALETY, jediný zdroj; výchozí `sky`), CSS generuje `layout.tsx`
+  (`html[data-accent]`, `html.dark[data-accent]`), skript v `<head>` nasadí `localStorage["slave:accent"]` před
+  paintem. `--brand-muted` = color-mix 15 % do pozadí (neprůhledné kvůli sticky záhlaví). Test hlídá WCAG ≥ 4,5
+  na pozadí i kartě i text na akcentu. Rozbor: `docs/barvy.md`.
+
 ## Log (posledních ~30)
 - 2026-11-03 11:08 — appka bez PC: Kalendář + Tabulky offline, testy a build zelené.
 - 2026-11-03 11:11 — nové logo appky (oko z Gemini) přes skript, ikony a splash přegenerované.
 - 2026-11-03 11:18 — Nastavení do hlavičky, OTA z GitHubu, remote origin, docs.
 - 2026-11-03 11:27 — test na telefonu: kalendář, tabulky, force-stop OK; oprava: vybraná buňka se posune do zobrazení, české uvozovky; OTA balík 2026.11.03.10.26.
+- 2026-11-03 11:37 — S/_ave wordmark, volba barvy akcentu (7 palet, WCAG test), docs/barvy.md, APK + OTA 2026.11.03.10.32.
