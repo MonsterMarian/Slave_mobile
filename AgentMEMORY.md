@@ -1,5 +1,5 @@
 # AgentMEMORY — SlaveMobil (S/_ave)
-Aktualizováno: 2026-11-03 18:49
+Aktualizováno: 2026-11-03 18:52
 
 ## Cíl repa
 Android appka Slave (Capacitor): Kalendář, Tabulky (mini Excel) a Příkaz pro PC. Data v localStorage
@@ -33,7 +33,8 @@ a synchronizovaná přes Supabase s PC (`pc/most.mjs` provádí příkazy z tele
 - 2026-11-03 — Tabulky: šířka sloupce podle textu (canvas measureText, 48–280 px) nebo ruční tažením úchytu v záhlaví
   (`List.sirky`, 48–600 px, dvojí ťuknutí = zpět podle textu); export .xlsx s `<cols>` a `_xlfn.` u CONCAT/TEXTJOIN/IFS/XLOOKUP.
   Vzorce rozšířené o ~45 funkcí (SUMIF(S), COUNTIF(S), VLOOKUP/XLOOKUP/INDEX/MATCH, IFERROR, textové…); chyba v argumentu
-  je hodnota (IFERROR funguje). vzorce.ts se tím odchýlil od kopie v repu Slave.
+  je hodnota (IFERROR funguje). vzorce.ts se tím odchýlil od kopie v repu Slave. Nápověda funkcí (tlačítka pod
+  řádkem vzorce, `napoveda()`). Ověřeno v Chromu (out/ přes python http.server): šířky, tažení, reset, COUNTIF.
 - 2026-11-03 — Kalendář (měsíc od pondělí, události přidat/upravit/smazat, vícedenní, celodenní) a Tabulky
   (seznam, editor s listy, vzorce) offline; spojení s PC z UI pryč.
 
@@ -80,6 +81,7 @@ a synchronizovaná přes Supabase s PC (`pc/most.mjs` provádí příkazy z tele
   (to dávalo tyrkysovou a zelenavé pozadí). Ikony/splash přes `npm run android:assets`.
 
 ## Log (posledních ~30)
+- 2026-11-03 18:52 — „pokračuj“ → nápověda funkcí při psaní vzorce, vizuální kontrola v Chromu, OTA 2026.11.03.17.50.
 - 2026-11-03 18:49 — „šířky sloupců podle textu / tažením + další Excel funkce“ → hotovo, 86 testů, OTA balík; na telefonu neověřeno (bez kabelu).
 - 2026-11-03 17:48 — „hoď tam data“ → pc/.env, most spuštěný, příkaz z fronty → Claude založil tabulku Kontakty (id, jméno,
   telefonní číslo, status, web; jen záhlaví, NECHAT) za ~30 s. Ověřeno v DB; zobrazení v telefonu neověřeno (bez kabelu).

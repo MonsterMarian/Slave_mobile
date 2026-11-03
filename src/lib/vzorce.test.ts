@@ -1,6 +1,6 @@
 // Převedeno z repa Slave: desktop-agent/scripts/vzorce.check.ts (stejné případy).
 import { describe, expect, it } from "vitest";
-import { adresa, formatuj, nazevSloupce, normalizuj, spocitej } from "./vzorce";
+import { adresa, formatuj, napoveda, nazevSloupce, normalizuj, spocitej } from "./vzorce";
 
 const f = (bunky: string[][]) => spocitej(bunky).map((r) => r.map(formatuj));
 
@@ -104,6 +104,15 @@ describe("vzorce", () => {
     expect(s("=SQRT(-1)")).toBe("#ČÍSLO!");
     expect(s("=SUMPRODUCT(C1:C3;C1:C3)")).toBe("75000");
     expect(s("=_xlfn.CONCAT(\"a\";\"b\")")).toBe("ab");
+  });
+
+  it("nápověda funkcí při psaní vzorce", () => {
+    expect(napoveda("=su").funkce.slice(0, 3)).toEqual(["SUM", "SUMIF", "SUMIFS"]);
+    expect(napoveda("=A1+vl")).toEqual({ slovo: "vl", funkce: ["VLOOKUP"] });
+    expect(napoveda("=A1").funkce).toEqual([]); // odkaz, ne funkce
+    expect(napoveda('=IF(A1="su').funkce).toEqual([]); // v řetězci
+    expect(napoveda("su").funkce).toEqual([]); // není vzorec
+    expect(napoveda("=SUM").funkce).toEqual(["SUMIF", "SUMIFS", "SUMPRODUCT"]);
   });
 
   it("středník mimo řetězec se převede na čárku", () => {

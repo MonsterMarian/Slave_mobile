@@ -21,7 +21,7 @@ import {
   ulozTabulky,
   type Tabulka,
 } from "@/lib/tabulky";
-import { Chyba, formatuj, nazevSloupce, spocitej } from "@/lib/vzorce";
+import { Chyba, formatuj, napoveda, nazevSloupce, spocitej } from "@/lib/vzorce";
 import { nazevSouboru, xlsx } from "@/lib/xlsx";
 import { cn } from "@/lib/utils";
 
@@ -157,6 +157,7 @@ function Editor({
   const list = tabulka.listy.find((l) => l.id === listId) ?? tabulka.listy[0];
   const [sel, setSel] = React.useState<[number, number]>([0, 0]);
   const raw = list.bunky[`${sel[0]},${sel[1]}`] ?? "";
+  const napsane = napoveda(raw);
   const [prejmenovat, setPrejmenovat] = React.useState(false);
   const [smazatList, setSmazatList] = React.useState(false);
   const [hlaska, setHlaska] = React.useState("");
@@ -278,6 +279,21 @@ function Editor({
           <Check className="size-5" />
         </Button>
       </div>
+      {napsane.funkce.length ? (
+        <div className="flex gap-1.5 overflow-x-auto border-b px-3 py-1.5" aria-label="Nápověda funkcí">
+          {napsane.funkce.map((fn) => (
+            <button
+              key={fn}
+              type="button"
+              className="h-9 shrink-0 rounded-full border bg-secondary px-3 font-mono text-xs"
+              onPointerDown={(e) => e.preventDefault() /* klávesnice zůstane */}
+              onClick={() => napsat(raw.slice(0, raw.length - napsane.slovo.length) + fn + "(")}
+            >
+              {fn}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       {/* shortcut: vykresluje se celá mřížka (až 1000 × 100), ne jen viditelná část - virtualizovat, až to bude na telefonu pomalé. */}
       <div ref={mrizkaRef} className="min-h-0 flex-1 overflow-auto overscroll-none">

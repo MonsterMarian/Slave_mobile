@@ -389,6 +389,19 @@ const FUNKCE: Record<string, (a: Arg[]) => Hodnota> = {
   },
 }
 
+/** Funkce, které začínají rozepsaným slovem na konci vzorce (`=SU` → SUM, SUMIF…); mimo vzorec a v řetězci nic. */
+export function napoveda(raw: string, max = 8): { slovo: string; funkce: string[] } {
+  if (!raw.startsWith("=") || (raw.match(/"/g)?.length ?? 0) % 2) return { slovo: "", funkce: [] }
+  const slovo = /(?:^|[^A-Za-z0-9_.$])([A-Za-z][A-Za-z0-9.]*)$/.exec(raw)?.[1] ?? ""
+  if (!slovo || /\d/.test(slovo)) return { slovo, funkce: [] } // A1, B12 = odkaz na buňku
+  const s = slovo.toUpperCase()
+  const funkce = Object.keys(FUNKCE)
+    .filter((f) => f.startsWith(s) && f !== s)
+    .sort((a, b) => a.length - b.length || a.localeCompare(b))
+    .slice(0, max)
+  return { slovo, funkce }
+}
+
 /** Funkce, které Excel v souboru .xlsx chce s předponou `_xlfn.` (novější než Excel 2007). */
 export const XLFN = ["CONCAT", "TEXTJOIN", "IFS", "XLOOKUP"]
 
