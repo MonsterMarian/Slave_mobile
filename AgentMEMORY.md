@@ -1,9 +1,9 @@
 # AgentMEMORY — SlaveMobil (S/_ave)
-Aktualizováno: 2026-11-03 13:54
+Aktualizováno: 2026-11-03 17:19
 
 ## Cíl repa
-Android appka Slave (Capacitor). Teď (2026-11-03) **offline**: Kalendář a Tabulky (mini Excel),
-data jen v telefonu. Dřív klient k PC (Rozhovor / Přehled / spárování) - kód zůstává, UI je vypnuté.
+Android appka Slave (Capacitor): Kalendář, Tabulky (mini Excel) a Příkaz pro PC. Data v localStorage
+a synchronizovaná přes Supabase s PC (`pc/most.mjs` provádí příkazy z telefonu přes Claude Code). Dřív klient k PC (Rozhovor / Přehled / spárování) - kód zůstává, UI je vypnuté.
 
 ## Stav / jak spustit
 - Next.js 15 static export + Capacitor 8, React 19, Tailwind 4, shadcn/ui (+ `@radix-ui/react-dialog`), lucide, vitest.
@@ -15,6 +15,16 @@ data jen v telefonu. Dřív klient k PC (Rozhovor / Přehled / spárování) - k
 - Telefon: Xiaomi `ace40f277d77`, `C:\Android\sdk\platform-tools\adb.exe -s ace40f277d77 install -r Slave.apk`.
 - Kód: `src/components/kalendar-view.tsx`, `tabulky-view.tsx`, `ui/dialog.tsx`; logika `src/lib/udalosti.ts`,
   `tabulky.ts`, `uloziste.ts`, `vzorce.ts` (kopie z repa Slave) + testy `*.test.ts`.
+
+## Supabase (od 2026-11-03)
+- Projekt https://tvttqesgnzzrtfecrqjt.supabase.co; URL + publishable klíč v `.env.local` (gitignored, ale build je
+  zapéká do OTA balíku → veřejné na GitHubu; publishable klíč je k tomu určený, data hlídá RLS + přihlášení).
+- Schéma `supabase/schema.sql` (tabulky, udalosti, prikazy; RLS user_id = auth.uid(); realtime). Spouští se ručně v SQL Editoru.
+- Telefon: `src/lib/sync.ts` tříbodové sloučení (místní / vzdálené / základ `slave:sync:<kolekce>`), při konfliktu vyhraje PC;
+  běží po uložení, při startu, návratu do appky a na realtime. Přihlášení v Nastavení → Synchronizace s PC.
+- PC: `npm run most` (pc/most.mjs) - fronta `prikazy` → `claude -p` s `pc/navod.md`, smí jen `Bash(node pc/db.mjs:*)`;
+  účet v `pc/.env` (SLAVE_EMAIL, SLAVE_HESLO; vzor `pc/.env.example`). Ručně: `node pc/db.mjs seznam tabulky`.
+- Past: v Node na Windows `process.exit()` se supabase klientem padá na libuv assert → `process.exitCode`.
 
 ## Hotovo
 - 2026-11-03 — Kalendář (měsíc od pondělí, události přidat/upravit/smazat, vícedenní, celodenní) a Tabulky
@@ -63,6 +73,9 @@ data jen v telefonu. Dřív klient k PC (Rozhovor / Přehled / spárování) - k
   (to dávalo tyrkysovou a zelenavé pozadí). Ikony/splash přes `npm run android:assets`.
 
 ## Log (posledních ~30)
+- 2026-11-03 17:19 — příkazy z telefonu na PC přes Supabase + synchronizace tabulek/kalendáře → schéma, sync (8 testů), záložka
+  Příkaz, Nastavení přihlášení, pc/most.mjs + db.mjs; OTA balík 2026.11.03.16.15. E2E NEOVĚŘENO: v Supabase chybí
+  schéma a uživatel; tabulka Kontakty (id, jméno, telefon, status, web) se má založit příkazem z telefonu.
 - 2026-11-03 11:08 — appka bez PC: Kalendář + Tabulky offline, testy a build zelené.
 - 2026-11-03 11:11 — nové logo appky (oko z Gemini) přes skript, ikony a splash přegenerované.
 - 2026-11-03 11:18 — Nastavení do hlavičky, OTA z GitHubu, remote origin, docs.

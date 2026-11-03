@@ -106,7 +106,7 @@ export function zkontroluj(u: Udalost): string | null {
   return null;
 }
 
-function platna(x: unknown): Udalost | null {
+export function platna(x: unknown): Udalost | null {
   if (!x || typeof x !== "object") return null;
   const u = x as Record<string, unknown>;
   if (!jeText(u.id) || !jeText(u.nazev) || !jeText(u.od) || !DEN_RE.test(u.od)) return null;

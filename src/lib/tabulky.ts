@@ -82,7 +82,7 @@ function platnyList(x: unknown): List | null {
   return { id: l.id, nazev: l.nazev, bunky };
 }
 
-function platna(x: unknown): Tabulka | null {
+export function platna(x: unknown): Tabulka | null {
   if (!x || typeof x !== "object") return null;
   const t = x as Record<string, unknown>;
   if (!jeText(t.id) || !jeText(t.nazev)) return null;

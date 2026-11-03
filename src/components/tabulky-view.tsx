@@ -5,6 +5,7 @@ import { ArrowLeft, Check, Download, Pencil, Plus, Sheet, Trash2 } from "lucide-
 import { Button } from "@/components/ui/button";
 import { NazevDialog, PotvrzeniDialog } from "@/components/ui/dialog";
 import { ulozSoubor } from "@/lib/native";
+import { naplanuj, odebirej } from "@/lib/sync";
 import { MAX_RADKU, mrizka, nactiTabulky, nastavBunku, novaTabulka, novyList, rozmer, ulozTabulky, type Tabulka } from "@/lib/tabulky";
 import { Chyba, formatuj, nazevSloupce, spocitej } from "@/lib/vzorce";
 import { nazevSouboru, xlsx } from "@/lib/xlsx";
@@ -30,10 +31,18 @@ function useTabulky() {
   React.useEffect(() => {
     setTabulky(nactiTabulky());
     setNacteno(true);
+    // Synchronizace změnila data v telefonu (třeba z PC): rozepsané neuložené už je v nich sloučené.
+    return odebirej("tabulky", () => {
+      posledni.current = null;
+      setTabulky(nactiTabulky());
+    });
   }, []);
 
   const ulozHned = React.useCallback(() => {
-    if (posledni.current) setChyba(!ulozTabulky(posledni.current));
+    if (posledni.current) {
+      setChyba(!ulozTabulky(posledni.current));
+      naplanuj("tabulky");
+    }
     posledni.current = null;
   }, []);
 

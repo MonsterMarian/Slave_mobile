@@ -20,6 +20,7 @@ import {
   zkontroluj,
   type Udalost,
 } from "@/lib/udalosti";
+import { naplanuj, odebirej } from "@/lib/sync";
 import { noveId } from "@/lib/uloziste";
 import { cn } from "@/lib/utils";
 
@@ -141,11 +142,15 @@ export function KalendarView() {
   const [upravit, setUpravit] = React.useState<Udalost | null>(null);
   const [chybaUlozeni, setChybaUlozeni] = React.useState(false);
 
-  React.useEffect(() => setUdalosti(nactiUdalosti()), []);
+  React.useEffect(() => {
+    setUdalosti(nactiUdalosti());
+    return odebirej("udalosti", () => setUdalosti(nactiUdalosti()));
+  }, []);
 
   const zmenit = (dalsi: Udalost[]) => {
     setUdalosti(dalsi);
     setChybaUlozeni(!ulozUdalosti(dalsi));
+    naplanuj("udalosti");
   };
 
   const dny = mrizkaMesice(mesic.rok, mesic.mesic);

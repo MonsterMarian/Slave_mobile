@@ -17,7 +17,9 @@
     "android:sync": "cap sync android",
     "android:apk": "npm run ota:bundle && npm run android:sync && node scripts/gradle.mjs assembleDebug",
     "android:release": "npm run ota:bundle && npm run android:sync && node scripts/gradle.mjs assembleRelease && npm run android:sign",
-    "android:sign": "node scripts/sign-apk.mjs"
+    "android:sign": "node scripts/sign-apk.mjs",
+    "most": "node pc/most.mjs",
+    "db": "node pc/db.mjs"
   },
   "dependencies": {
     "@capacitor-community/speech-recognition": "^7.0.1",
@@ -30,6 +32,7 @@
     "@capacitor/splash-screen": "^8.0.2",
     "@capacitor/status-bar": "^8.0.3",
     "@radix-ui/react-dialog": "^1.3.1",
+    "@supabase/supabase-js": "^2.118.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.468.0",

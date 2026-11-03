@@ -4,7 +4,7 @@ import * as React from "react";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Field, Input } from "@/components/ui/input";
 import { SwitchPill } from "@/components/ui/switch-pill";
 import {
   applyPendingUpdate,
@@ -15,6 +15,8 @@ import {
   pendingBundleVersion,
   setUpdateUrl,
 } from "@/lib/live-update";
+import { klient, nactiPripojeni, prihlasenJako, ulozPripojeni } from "@/lib/supabase";
+import { obnovSync, odebirej, stavSync, zapomenSync } from "@/lib/sync";
 import { getServerTheme, getTheme, setTheme, subscribeTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -141,6 +143,111 @@ function UpdateCard() {
   );
 }
 
+/** Supabase: projekt (výchozí z buildu) + účet - stejný se přihlašuje PC v `pc/.env`. */
+function SyncCard() {
+  const [url, setUrl] = React.useState("");
+  const [klic, setKlic] = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [heslo, setHeslo] = React.useState("");
+  const [kdo, setKdo] = React.useState<string | null>(null);
+  const [zprava, setZprava] = React.useState("");
+  const [prace, setPrace] = React.useState(false);
+  const stav = React.useSyncExternalStore((fn) => odebirej("stav", fn), stavSync, stavSync);
+
+  React.useEffect(() => {
+    const p = nactiPripojeni();
+    setUrl(p.url);
+    setKlic(p.klic);
+    void prihlasenJako().then(setKdo);
+  }, []);
+
+  const prihlasit = async () => {
+    setPrace(true);
+    setZprava("");
+    ulozPripojeni({ url, klic });
+    const sb = klient();
+    if (!sb) {
+      setPrace(false);
+      return setZprava("Adresa musí začínat https:// a klíč nesmí chybět.");
+    }
+    const { data, error } = await sb.auth.signInWithPassword({ email: email.trim(), password: heslo });
+    setPrace(false);
+    if (error) return setZprava(`Přihlášení se nepovedlo: ${error.message}`);
+    setHeslo("");
+    setKdo(data.user.email ?? email);
+    await obnovSync();
+    setZprava("Přihlášeno, data se synchronizují.");
+  };
+
+  const odhlasit = async () => {
+    await klient()?.auth.signOut();
+    zapomenSync();
+    setKdo(null);
+    setZprava("Odhlášeno. Data v telefonu zůstala.");
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Synchronizace s PC</CardTitle>
+        <CardDescription>
+          Tabulky, kalendář a příkazy přes Supabase. Bez sítě appka funguje dál a změny pošle, až bude připojení.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        {kdo ? (
+          <>
+            <p className="text-sm">
+              Přihlášen jako <span className="font-medium">{kdo}</span>
+            </p>
+            <p className="tabular text-xs text-muted-foreground">
+              {stav.chyba
+                ? `Synchronizace selhala: ${stav.chyba}`
+                : stav.posledni
+                  ? `Synchronizováno ${new Date(stav.posledni).toLocaleTimeString("cs-CZ")}`
+                  : "Čekám na první synchronizaci…"}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" className="h-11" onClick={() => void obnovSync()}>
+                <RefreshCw /> Synchronizovat teď
+              </Button>
+              <Button variant="ghost" className="h-11" onClick={() => void odhlasit()}>
+                Odhlásit
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <Field label="E-mail" htmlFor="sb-email">
+              <Input id="sb-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="username" className="h-11" />
+            </Field>
+            <Field label="Heslo" htmlFor="sb-heslo">
+              <Input id="sb-heslo" type="password" value={heslo} onChange={(e) => setHeslo(e.target.value)} autoComplete="current-password" className="h-11" />
+            </Field>
+            <Button variant="brand" className="h-11 self-start" disabled={prace || !email || !heslo} onClick={() => void prihlasit()}>
+              {prace ? "Přihlašuji…" : "Přihlásit"}
+            </Button>
+            <details className="text-xs">
+              <summary className="flex min-h-11 cursor-pointer items-center text-muted-foreground">
+                Projekt {url ? url.replace(/^https:\/\//, "") : "(nevyplněný)"}
+              </summary>
+              <div className="flex flex-col gap-3">
+                <Field label="Adresa projektu" htmlFor="sb-url">
+                  <Input id="sb-url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://xxxx.supabase.co" autoComplete="off" spellCheck={false} className="h-11 font-mono text-xs" />
+                </Field>
+                <Field label="Publishable klíč" htmlFor="sb-klic">
+                  <Input id="sb-klic" value={klic} onChange={(e) => setKlic(e.target.value)} placeholder="sb_publishable_…" autoComplete="off" spellCheck={false} className="h-11 font-mono text-xs" />
+                </Field>
+              </div>
+            </details>
+          </>
+        )}
+        {zprava ? <p className="text-sm">{zprava}</p> : null}
+      </CardContent>
+    </Card>
+  );
+}
+
 export function SettingsView({ onZpet }: { onZpet: () => void }) {
   const theme = React.useSyncExternalStore(subscribeTheme, getTheme, getServerTheme);
 
@@ -166,9 +273,9 @@ export function SettingsView({ onZpet }: { onZpet: () => void }) {
         </CardContent>
       </Card>
 
-      <UpdateCard />
+      <SyncCard />
 
-      <p className="text-center text-xs text-muted-foreground">Kalendář a tabulky jsou uložené jen v tomhle telefonu.</p>
+      <UpdateCard />
     </div>
   );
 }
