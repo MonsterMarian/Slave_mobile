@@ -1,5 +1,5 @@
 # AgentMEMORY — SlaveMobil (S/_ave)
-Aktualizováno: 2026-11-03 11:47
+Aktualizováno: 2026-11-03 13:54
 
 ## Cíl repa
 Android appka Slave (Capacitor). Teď (2026-11-03) **offline**: Kalendář a Tabulky (mini Excel),
@@ -27,10 +27,14 @@ data jen v telefonu. Dřív klient k PC (Rozhovor / Přehled / spárování) - k
 - 2026-11-03 — Jméno S/_ave (wordmark v hlavičce bez loga, appName, strings.xml, title); jediný akcent S/_ave modrá; logo přebarvené do modré.
 
 ## Rozpracováno
-- (nic)
+- 2026-11-03 — export .xlsx (`src/lib/xlsx.ts`, bez knihovny, v telefonu do Dokumenty/S_ave přes Filesystem),
+  mazání listu (koš v liště listů, jen když je jich víc), Zpět zavře otevřený dialog (`native.ts` zavriDialog).
+  Testy 68/68, build, soubor ověřen v openpyxl; APK nainstalováno do telefonu, ale proklikání NEDOKONČENO
+  (uživatel: „skipni mobilní apku"). Ověřit: export na telefonu (zápis do veřejných Dokumentů na Androidu 13+
+  bez oprávnění?), Zpět u dialogu, smazání listu.
 
 ## Další kroky
-- Export .xlsx (chce knihovnu), virtualizace velké mřížky, mazání listu, Zpět zavírá otevřený dialog.
+- Ověřit na telefonu export, mazání listu a Zpět (viz Rozpracováno); virtualizace velké mřížky; import .xlsx.
 - V localStorage telefonu zůstal mrtvý klíč `slave:accent` z testu výběru barev (nic ho nečte).
 
 ## Rozhodnutí a poznámky
@@ -66,3 +70,5 @@ data jen v telefonu. Dřív klient k PC (Rozhovor / Přehled / spárování) - k
 - 2026-11-03 11:37 — S/_ave wordmark, volba barvy akcentu (7 palet, WCAG test), docs/barvy.md, APK + OTA 2026.11.03.10.32.
 - 2026-11-03 11:44 — jen modrá (výběr barev pryč), logo přebarvené do modré, APK + OTA 2026.11.03.10.40.
 - 2026-11-03 11:47 — test na telefonu (APK 2026.11.03.10.40): ikona S/_ave, modrá v obou režimech, OTA „Máš nejnovější verzi"; testovací data smazána, appka na Kalendáři.
+- 2026-11-03 13:54 — export .xlsx, mazání listu, Zpět zavře dialog; testy + build + openpyxl OK, APK + OTA 2026.11.03.12.51
+  v telefonu, ruční test na telefonu přerušen na pokyn uživatele.

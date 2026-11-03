@@ -3,7 +3,7 @@
  * Výpočet je v `vzorce.ts`, data jen v telefonu (`uloziste.ts`).
  *
  * shortcut: všechny tabulky v jednom klíči localStorage (strop WebView ~5 MB) - rozdělit po tabulkách, až se tam nevejdou.
- * shortcut: bez exportu do .xlsx - chce knihovnu (např. SheetJS), přidat na požádání.
+ * Export do .xlsx: `xlsx.ts` (bez knihovny); import .xlsx zatím ne.
  */
 import { jeText, nactiJson, noveId, ulozJson } from "./uloziste";
 

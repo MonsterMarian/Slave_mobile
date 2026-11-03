@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SettingsView } from "@/components/settings-view";
 import { TabulkyView } from "@/components/tabulky-view";
 import { applyPendingUpdate, checkForUpdate, markBootSucceeded } from "@/lib/live-update";
-import { hideSplash, isNative, registerBackButton, syncStatusBar } from "@/lib/native";
+import { hideSplash, isNative, registerBackButton, syncStatusBar, zavriDialog } from "@/lib/native";
 import { cn } from "@/lib/utils";
 
 // shortcut: spojení s PC je v UI vypnuté (2026-11-03) - Rozhovor a Přehled (chat-view, overview-view,
@@ -23,7 +23,7 @@ const NAV: { id: Tab; label: string; icon: typeof Settings }[] = [
 /**
  * Nativní chování appky: schování splash screenu po prvním vykreslení,
  * stavová lišta podle tématu, živé aktualizace a hardwarové Zpět
- * (z Nastavení tam, odkud se přišlo, z otevřené tabulky na seznam, z Tabulek
+ * (nejdřív zavře otevřený dialog; z Nastavení tam, odkud se přišlo, z otevřené tabulky na seznam, z Tabulek
  * na Kalendář, z Kalendáře ven).
  * V prohlížeči nic.
  */
@@ -63,6 +63,7 @@ export function AppShell() {
   };
 
   useNativeShell(() => {
+    if (zavriDialog()) return true;
     if (tab === "nastaveni") zNastaveni();
     else if (tab === "tabulky" && tabulka) setTabulka(null);
     else if (tab !== "kalendar") setTab("kalendar");

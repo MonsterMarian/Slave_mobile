@@ -1,12 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { ArrowLeft, Check, Pencil, Plus, Sheet, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, Download, Pencil, Plus, Sheet, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NazevDialog, PotvrzeniDialog } from "@/components/ui/dialog";
+import { ulozSoubor } from "@/lib/native";
 import { MAX_RADKU, mrizka, nactiTabulky, nastavBunku, novaTabulka, novyList, rozmer, ulozTabulky, type Tabulka } from "@/lib/tabulky";
 import { Chyba, formatuj, nazevSloupce, spocitej } from "@/lib/vzorce";
+import { nazevSouboru, xlsx } from "@/lib/xlsx";
 import { cn } from "@/lib/utils";
+
+const XLSX_TYP = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
 // shortcut: tvrdé zabití procesu (force-stop, pád) do 400 ms po posledním znaku ho ztratí; běžné zavření
 // a přepnutí appky ukládá hned (visibilitychange). Ukládat bez zpoždění, kdyby to vadilo.
@@ -71,6 +75,8 @@ function Editor({
   const [sel, setSel] = React.useState<[number, number]>([0, 0]);
   const raw = list.bunky[`${sel[0]},${sel[1]}`] ?? "";
   const [prejmenovat, setPrejmenovat] = React.useState(false);
+  const [smazatList, setSmazatList] = React.useState(false);
+  const [hlaska, setHlaska] = React.useState("");
   const pole = React.useRef<HTMLInputElement>(null);
   const mrizkaRef = React.useRef<HTMLDivElement>(null);
 
@@ -101,6 +107,30 @@ function Editor({
     setSel([0, 0]);
   };
 
+  const odebratList = () => {
+    const i = tabulka.listy.findIndex((l) => l.id === list.id);
+    const zbyle = tabulka.listy.filter((l) => l.id !== list.id);
+    if (zbyle.length === 0) return; // poslední list se nemaže (tlačítko se ani neukáže)
+    zmen((t) => ({ ...t, listy: t.listy.filter((l) => l.id !== list.id) }));
+    setListId(zbyle[Math.max(0, i - 1)].id);
+    setSel([0, 0]);
+  };
+
+  React.useEffect(() => {
+    if (!hlaska) return;
+    const t = setTimeout(() => setHlaska(""), 6000);
+    return () => clearTimeout(t);
+  }, [hlaska]);
+
+  const exportovat = async () => {
+    try {
+      const kam = await ulozSoubor(nazevSouboru(tabulka.nazev), xlsx(tabulka), XLSX_TYP);
+      setHlaska(`Uloženo: ${kam}`);
+    } catch (e) {
+      setHlaska(`Export se nepovedl: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  };
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex items-center gap-1 px-2 pt-2">
@@ -108,7 +138,15 @@ function Editor({
           <ArrowLeft className="size-5" />
         </Button>
         <h1 className="min-w-0 flex-1 truncate text-base font-semibold tracking-tight">{tabulka.nazev}</h1>
+        <Button variant="ghost" className="size-11" aria-label="Exportovat do .xlsx" title="Exportovat do .xlsx" onClick={() => void exportovat()}>
+          <Download className="size-5" />
+        </Button>
       </div>
+      {hlaska ? (
+        <p role="status" className={cn("px-4 pb-1 text-sm", hlaska.startsWith("Export se") ? "text-destructive" : "text-muted-foreground")}>
+          {hlaska}
+        </p>
+      ) : null}
 
       <div className="flex items-center gap-2 border-b px-3 py-2">
         <span className="tabular w-12 shrink-0 rounded-md bg-secondary py-2.5 text-center font-mono text-sm">
@@ -218,8 +256,25 @@ function Editor({
         <Button variant="ghost" className="size-11 shrink-0" aria-label="Přidat list" onClick={pridatList}>
           <Plus className="size-5" />
         </Button>
+        {tabulka.listy.length > 1 ? (
+          <Button
+            variant="ghost"
+            className="ml-auto size-11 shrink-0 text-destructive"
+            aria-label={`Smazat list ${list.nazev}`}
+            onClick={() => setSmazatList(true)}
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        ) : null}
       </div>
 
+      <PotvrzeniDialog
+        otevreno={smazatList}
+        onZavrit={() => setSmazatList(false)}
+        titulek="Smazat list?"
+        text={`„${list.nazev}“ se smaže i s obsahem. Nejde to vrátit.`}
+        onPotvrdit={odebratList}
+      />
       <NazevDialog
         otevreno={prejmenovat}
         onZavrit={() => setPrejmenovat(false)}

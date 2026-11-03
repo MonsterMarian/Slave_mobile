@@ -11,6 +11,7 @@
  * nevyřeší. Volání pak visí bez jediné stopy.
  */
 import { App } from "@capacitor/app";
+import { Directory, Filesystem } from "@capacitor/filesystem";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { StatusBar, Style } from "@capacitor/status-bar";
@@ -57,6 +58,38 @@ export async function hideSplash(): Promise<void> {
   } catch {
     // splash se skryje sám podle launchShowDuration
   }
+}
+
+/**
+ * Uloží soubor tam, kde ho uživatel najde: v telefonu do Dokumenty/S_ave
+ * (soubor se otevře ze Správce souborů nebo v Excelu), v prohlížeči jako stažení.
+ * Vrátí, kam soubor šel (pro hlášku). Chyba (plné úložiště, zakázaný přístup) se vyhodí.
+ */
+export async function ulozSoubor(nazev: string, data: Uint8Array, typ: string): Promise<string> {
+  if (isNative()) {
+    let bin = "";
+    for (let i = 0; i < data.length; i += 0x8000) bin += String.fromCharCode(...data.subarray(i, i + 0x8000));
+    await Filesystem.writeFile({ path: `S_ave/${nazev}`, data: btoa(bin), directory: Directory.Documents, recursive: true });
+    return `Dokumenty/S_ave/${nazev}`;
+  }
+  const url = URL.createObjectURL(new Blob([data as BlobPart], { type: typ }));
+  const a = Object.assign(document.createElement("a"), { href: url, download: nazev });
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return `Stažené soubory/${nazev}`;
+}
+
+/**
+ * Otevřený dialog (Radix) zavře jako Escape - hardwarové Zpět má nejdřív
+ * zavřít dialog, ne odejít z obrazovky pod ním. Vrátí, jestli nějaký byl.
+ */
+export function zavriDialog(): boolean {
+  if (typeof document === "undefined") return false;
+  const dialog = document.querySelector('[role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"]');
+  if (!dialog) return false;
+  // Radix poslouchá Escape na dokumentu - událost musí vyjít z prvku uvnitř dialogu
+  dialog.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
+  return true;
 }
 
 /**
