@@ -1,5 +1,5 @@
 # AgentMEMORY — SlaveMobil (S/_ave)
-Aktualizováno: 2026-11-03 11:44
+Aktualizováno: 2026-11-03 11:47
 
 ## Cíl repa
 Android appka Slave (Capacitor). Teď (2026-11-03) **offline**: Kalendář a Tabulky (mini Excel),
@@ -30,7 +30,8 @@ data jen v telefonu. Dřív klient k PC (Rozhovor / Přehled / spárování) - k
 - (nic)
 
 ## Další kroky
-- Export .xlsx (chce knihovnu), virtualizace velké mřížky, mazání listu.
+- Export .xlsx (chce knihovnu), virtualizace velké mřížky, mazání listu, Zpět zavírá otevřený dialog.
+- V localStorage telefonu zůstal mrtvý klíč `slave:accent` z testu výběru barev (nic ho nečte).
 
 ## Rozhodnutí a poznámky
 - 2026-11-03 — Úložiště `localStorage` (`slave:kalendar`, `slave:tabulky`), stejně jako téma a spárování.
@@ -64,3 +65,4 @@ data jen v telefonu. Dřív klient k PC (Rozhovor / Přehled / spárování) - k
 - 2026-11-03 11:27 — test na telefonu: kalendář, tabulky, force-stop OK; oprava: vybraná buňka se posune do zobrazení, české uvozovky; OTA balík 2026.11.03.10.26.
 - 2026-11-03 11:37 — S/_ave wordmark, volba barvy akcentu (7 palet, WCAG test), docs/barvy.md, APK + OTA 2026.11.03.10.32.
 - 2026-11-03 11:44 — jen modrá (výběr barev pryč), logo přebarvené do modré, APK + OTA 2026.11.03.10.40.
+- 2026-11-03 11:47 — test na telefonu (APK 2026.11.03.10.40): ikona S/_ave, modrá v obou režimech, OTA „Máš nejnovější verzi"; testovací data smazána, appka na Kalendáři.
