@@ -1,19 +1,19 @@
 # Slave pro Android
 
-Mobilní klient hlasového asistenta **Slave**, který běží na PC. Telefon se po
-Wi-Fi nebo přes Tailscale připojí k sidecaru Slave (port 8765) a umí:
+Appka Slave pro telefon. **Teď funguje bez PC** (rozhodnuto 2026-11-03), data jsou
+jen v telefonu:
 
-1. **Rozhovor** - psát Slave, nebo diktovat česky (rozpoznávání řeči Androidu).
-   Odpovědi se předčítají i v telefonu (dá se vypnout). Když Slave čeká na
-   potvrzení, objeví se velká tlačítka **Ano / Ne**. Tlačítko **Stop** ho zastaví.
-2. **Přehled** - sezení (úlohy Claude Code a jejich stav), připomínky, kalendář
-   na 7 dní a vytížení PC (CPU, RAM, volný disk). Obnovuje se po 5 s, dokud je
-   appka v popředí.
-3. **Nastavení** - spárování s PC (adresa, port, mobilní token z Nastavení
-   Slave → Telefon), tlačítko *Vyzkoušet spojení*, předčítání, tmavý režim.
+1. **Kalendář** - měsíc od pondělí, události s časem nebo celodenní, i vícedenní;
+   přidat, upravit, smazat.
+2. **Tabulky** - malý Excel: tabulky s listy, vzorce (`=SUM(A1:A3)`, `IF`,
+   `AVERAGE`, `ROUND`…), ukládá se samo.
+3. **Nastavení** (ozubené kolo vpravo nahoře) - tmavý režim, aktualizace z GitHubu.
 
-Bez spojení appka řekne proč (PC vypnuté / jiná síť / špatný token) a sama se
-připojuje znovu s rostoucí pauzou.
+Spojení s PC (rozhovor, přehled, spárování) je v UI vypnuté; kód zůstal
+(`shortcut:` komentáře) a vrátí se, až bude potřeba.
+
+Repo: <https://github.com/MonsterMarian/Slave_mobile> (veřejné - odtud si appka
+stahuje živé aktualizace, viz [`ANDROID.md`](ANDROID.md)).
 
 ---
 
@@ -26,9 +26,7 @@ npm install
 npm run dev
 ```
 
-Aplikace poběží na `http://localhost:3000`. Sidecar ale pouští jen Origin
-`http://localhost` (bez portu), takže z dev serveru se k PC po síti
-nepřipojí - spojení se ověřuje v APK. Stavba APK je v [`ANDROID.md`](ANDROID.md),
+Aplikace poběží na `http://localhost:3000`. Stavba APK je v [`ANDROID.md`](ANDROID.md),
 rozhodnutí a stav v [`NOTES.md`](NOTES.md).
 
 ## Technologie
@@ -37,7 +35,7 @@ rozhodnutí a stav v [`NOTES.md`](NOTES.md).
 - React 19
 - TypeScript (strict mode)
 - Tailwind CSS 4
-- Vitest pro testování čisté logiky (token, adresy, kalendář, protokol, reconnect)
+- Vitest pro testování čisté logiky (kalendář, tabulky a vzorce, úložiště, aktualizace)
 - Capacitor 8 (nativní Android appka)
 
 Stejný základ jako appky MicroWins a mpL: `shadcn/ui` komponenty, ikony

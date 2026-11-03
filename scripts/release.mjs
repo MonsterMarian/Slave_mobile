@@ -12,8 +12,7 @@
  * Spuštění: npm run ota:bundle
  * Výstup:   out/ (web) + ota/bundle-<verze>.json + ota/latest.json
  *
- * Dokud není `OTA_RAW_BASE`, postaví se jen web s verzí a balík se nedělá
- * (OTA je vypnuté, viz `src/lib/live-update.ts` a ANDROID.md).
+ * Bez `OTA_RAW_BASE` by se postavil jen web s verzí a balík by se nedělal.
  */
 import { spawnSync } from "node:child_process";
 import { mkdir, readdir, readFile, writeFile, rm } from "node:fs/promises";
@@ -21,9 +20,8 @@ import path from "node:path";
 
 const SRC = "out";
 const DEST = "ota";
-// shortcut: OTA vypnuté, dokud appka nemá vlastní repo s releasy - pak sem
-// "https://raw.githubusercontent.com/<vlastník>/SlaveMobil/main/ota" jako v MicroWins.
-const OTA_RAW_BASE = "";
+// Bez lomítka na konci - jméno balíku se přidává jako `${OTA_RAW_BASE}/bundle-….json`.
+const OTA_RAW_BASE = "https://raw.githubusercontent.com/MonsterMarian/Slave_mobile/main/ota";
 
 const version = new Date().toISOString().replace(/[-:T]/g, ".").slice(0, 16);
 

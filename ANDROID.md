@@ -23,8 +23,9 @@ mají obě společné). Tenhle soubor je pro toho, kdo appku staví a vydává.
 | `scripts/sign-apk.mjs` | podepíše release APK klíčem z `android/keystore.properties` |
 | `src/lib/native.ts` | most do nativní vrstvy (haptika, lišta, splash, tlačítko Zpět) |
 | `src/lib/voice.ts` | diktování (`@capacitor-community/speech-recognition`) a předčítání (`@capacitor-community/text-to-speech`), obojí `cs-CZ` |
-| `src/lib/settings.ts`, `api.ts`, `socket.ts`, `protocol.ts` | spárování, HTTP API a WebSocket sidecaru |
-| `src/lib/live-update.ts` | živé aktualizace (OTA) - **vypnuté**, viz níž |
+| `src/lib/udalosti.ts`, `tabulky.ts`, `vzorce.ts`, `uloziste.ts` | kalendář, tabulky, vzorce, ukládání do localStorage |
+| `src/lib/settings.ts`, `api.ts`, `socket.ts`, `protocol.ts` | spárování, HTTP API a WebSocket sidecaru (v UI vypnuté) |
+| `src/lib/live-update.ts` | živé aktualizace (OTA) z GitHubu, viz níž |
 | `out/` | statický export webu, který se do APK kopíruje |
 
 ## Nástroje na tomhle počítači
@@ -84,7 +85,10 @@ Bez kabelu: APK zkopírovat do telefonu a otevřít ho tam. Android se zeptá na
 povolení instalovat z tohoto zdroje - jednorázově potvrď. Play Protect hlásí
 „Neznámá aplikace" - *Další podrobnosti → Přesto nainstalovat*.
 
-## Spojení s PC
+## Spojení s PC (v UI vypnuté od 2026-11-03)
+
+Platí, až se spojení vrátí; teď appka na PC nesahá.
+
 
 - Na PC: Slave → Nastavení → Telefon → *Povolit přístup z telefonu*, restart
   Slave (sidecar pak poslouchá na `0.0.0.0`). Windows se zeptá na firewall -
@@ -109,37 +113,49 @@ povolení instalovat z tohoto zdroje - jednorázově potvrď. Play Protect hlás
 `androidScheme` nebo `hostname` by uložené spárování schovala - uživatel by
 token opisoval znovu.
 
-## Živé aktualizace (OTA) - vypnuté
+## Živé aktualizace (OTA) z GitHubu
 
 Mechanismus je stejný jako v MicroWins a mpL (`src/lib/live-update.ts`,
-záchranný skript v `src/app/layout.tsx`, `scripts/release.mjs`), ale dokud
-appka nemá vlastní repozitář s releasy, je vypnutý: `DEFAULT_UPDATE_URL` je
-prázdný, `checkForUpdate()` vrací `disabled` a `release.mjs` balík do `ota/`
-nedělá.
+záchranný skript v `src/app/layout.tsx`, `scripts/release.mjs`). Repo
+<https://github.com/MonsterMarian/Slave_mobile> je veřejné, takže appka čte
+manifest bez přihlášení:
 
-Zapnutí, až bude repo na GitHubu (např. `<vlastník>/SlaveMobil`, veřejné -
-raw a API musí jít bez přihlášení):
+- manifest: `https://api.github.com/repos/MonsterMarian/Slave_mobile/contents/ota/latest.json?ref=main`
+  (API kvůli čerstvosti; když selže, záloha přes `raw.githubusercontent.com`)
+- balík: `https://raw.githubusercontent.com/MonsterMarian/Slave_mobile/main/ota/bundle-<verze>.json`
 
-1. V `src/lib/live-update.ts` nastavit
-   `DEFAULT_UPDATE_URL = "https://api.github.com/repos/<vlastník>/SlaveMobil/contents/ota/latest.json?ref=main"`
-   a `FALLBACK_UPDATE_URL = "https://raw.githubusercontent.com/<vlastník>/SlaveMobil/main/ota/latest.json"`.
-2. V `scripts/release.mjs` nastavit
-   `OTA_RAW_BASE = "https://raw.githubusercontent.com/<vlastník>/SlaveMobil/main/ota"`.
-3. Postavit a nainstalovat nové APK (to už si o aktualizace říká).
-4. Každá další verze webu: `npm run ota:bundle` → commit `ota/` → push.
-   Telefon si balík stáhne při startu a nasadí **při dalším otevření**.
+Appka při startu nasadí balík stažený minule a na pozadí se podívá po novějším.
+Ručně: Nastavení (vpravo nahoře) → Aktualizace z GitHubu → *Zkontrolovat teď*
+→ *Nasadit …* (nebo zavřít a otevřít appku).
 
-Co OTA neumí: nativní část (nový plugin, oprávnění, ikona, `targetSdk`). Na
-to je potřeba nové APK.
+**Vydání aktualizace webu** (změna v `src/`):
+
+```bash
+npm run ota:bundle        # postaví web s verzí, ota/latest.json + ota/bundle-<verze>.json
+git add ota && git commit # (s ostatními změnami)
+git push
+```
+
+`npm run android:release` dělá `ota:bundle` sám - po vydání APK stačí
+commitnout a pushnout `ota/`, ať appka s tím APK vidí, že je aktuální.
+
+**Kdy je potřeba nové APK:** změna nativní části - nový Capacitor plugin,
+oprávnění v manifestu, ikona nebo splash, `targetSdk`, `capacitor.config.ts`.
+To OTA nevymění.
 
 ## Změna ikony nebo splashe
 
-Zdroj je jediný soubor: `assets/logo_mark.svg` - jantarové jádro (`#f5a524`)
-na **průhledném** pozadí. Po jeho výměně:
+Originál je `assets/logo_source.jpg` (jantarové oko na tmavém, nejednolitém
+pozadí). Z něj `npm run logo:source` udělá `assets/logo_mark.png` s
+**průhledným** pozadím (alfa podle jasu, ořez kolem značky). Výměna loga:
 
 ```bash
+# nový obrázek do assets/logo_source.jpg
+npm run logo:source
 npm run android:assets
 ```
+
+Ikona a splash jsou nativní - po změně je potřeba nové APK, OTA nestačí.
 
 Vygeneruje ikony pro launcher (adaptivní i monochromatickou vrstvu pro
 tématické ikony na Androidu 13+), splash ve všech hustotách a logo do
@@ -185,8 +201,8 @@ v telefonu odinstalaci a nové spárování.
 
 ## Pozor při vývoji
 
-- Jediná stránka, záložky jsou stav (`app-shell.tsx`): spojení s PC žije
-  v `SlaveProvider` a přepnutí záložky ho nesmí přerušit.
+- Jediná stránka, záložky jsou stav (`app-shell.tsx`). Tabulky se ukládají
+  400 ms po změně a hned při odchodu appky na pozadí (`tabulky-view.tsx`).
 - Každá změna webu se do appky dostane až přes `cap sync android`.
   Samotný `next build` na APK nesáhne.
 - `npm run build` za běhu dev serveru rozbije dev appku v prohlížeči -

@@ -2,7 +2,7 @@
   "name": "slave-mobil",
   "version": "0.1.0",
   "private": true,
-  "description": "Slave - mobilní klient hlasového asistenta Slave, který běží na PC",
+  "description": "Slave pro Android - kalendář a tabulky v telefonu",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

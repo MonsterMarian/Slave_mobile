@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isOlderBundle } from "./live-update";
+import { DEFAULT_UPDATE_URL, FALLBACK_UPDATE_URL, isOlderBundle, resolveBundleUrl } from "./live-update";
 
 /** Verze tak, jak ji dělá scripts/release.mjs. */
 const version = (iso: string) => new Date(iso).toISOString().replace(/[-:T]/g, ".").slice(0, 16);
@@ -24,5 +24,21 @@ describe("isOlderBundle", () => {
 
   it("formát verze má nuly, jinak by textové porovnání lhalo", () => {
     expect(version("2026-01-02T03:04:00Z")).toBe("2026.01.02.03.04");
+  });
+});
+
+describe("adresy aktualizací", () => {
+  it("manifest z API repa Slave_mobile, záloha z raw", () => {
+    expect(DEFAULT_UPDATE_URL).toBe(
+      "https://api.github.com/repos/MonsterMarian/Slave_mobile/contents/ota/latest.json?ref=main",
+    );
+    expect(FALLBACK_UPDATE_URL).toBe("https://raw.githubusercontent.com/MonsterMarian/Slave_mobile/main/ota/latest.json");
+  });
+
+  it("plná adresa balíku zůstane, relativní se skládá vůči raw, ne vůči API", () => {
+    const plna = "https://raw.githubusercontent.com/MonsterMarian/Slave_mobile/main/ota/bundle-2026.11.03.10.00.json";
+    expect(resolveBundleUrl(plna, DEFAULT_UPDATE_URL)).toBe(plna);
+    expect(resolveBundleUrl("bundle-2026.11.03.10.00.json", DEFAULT_UPDATE_URL)).toBe(plna);
+    expect(resolveBundleUrl("b.json", "https://example.com/ota/latest.json")).toBe("https://example.com/ota/b.json");
   });
 });

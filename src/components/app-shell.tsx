@@ -3,6 +3,7 @@
 import * as React from "react";
 import { CalendarDays, Settings, Sheet } from "lucide-react";
 import { KalendarView } from "@/components/kalendar-view";
+import { Button } from "@/components/ui/button";
 import { SettingsView } from "@/components/settings-view";
 import { TabulkyView } from "@/components/tabulky-view";
 import { applyPendingUpdate, checkForUpdate, markBootSucceeded } from "@/lib/live-update";
@@ -14,16 +15,17 @@ import { cn } from "@/lib/utils";
 // slave-provider) vrátit do NAV, až uživatel řekne.
 type Tab = "kalendar" | "tabulky" | "nastaveni";
 
+// Nastavení není v liště - otevírá se ozubeným kolem vpravo nahoře.
 const NAV: { id: Tab; label: string; icon: typeof Settings }[] = [
   { id: "kalendar", label: "Kalendář", icon: CalendarDays },
   { id: "tabulky", label: "Tabulky", icon: Sheet },
-  { id: "nastaveni", label: "Nastavení", icon: Settings },
 ];
 
 /**
  * Nativní chování appky: schování splash screenu po prvním vykreslení,
  * stavová lišta podle tématu, živé aktualizace a hardwarové Zpět
- * (z otevřené tabulky na seznam, z vedlejší záložky na Kalendář, z Kalendáře ven).
+ * (z Nastavení tam, odkud se přišlo, z otevřené tabulky na seznam, z Tabulek
+ * na Kalendář, z Kalendáře ven).
  * V prohlížeči nic.
  */
 function useNativeShell(onBack: () => boolean) {
@@ -50,11 +52,20 @@ function useNativeShell(onBack: () => boolean) {
 
 export function AppShell() {
   const [tab, setTab] = React.useState<Tab>("kalendar");
+  const [odkud, setOdkud] = React.useState<Tab>("kalendar");
   const [tabulka, setTabulka] = React.useState<string | null>(null);
   const [native, setNative] = React.useState(false);
 
+  const zNastaveni = () => setTab(odkud);
+  const doNastaveni = () => {
+    if (tab === "nastaveni") return zNastaveni();
+    setOdkud(tab);
+    setTab("nastaveni");
+  };
+
   useNativeShell(() => {
-    if (tab === "tabulky" && tabulka) setTabulka(null);
+    if (tab === "nastaveni") zNastaveni();
+    else if (tab === "tabulky" && tabulka) setTabulka(null);
     else if (tab !== "kalendar") setTab("kalendar");
     else return false;
     return true;
@@ -68,7 +79,16 @@ export function AppShell() {
         <div className="mx-auto flex h-14 w-full max-w-2xl items-center gap-3 px-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={logoImage} alt="" className="size-8 object-contain" />
-          <span className="text-base font-semibold tracking-tight">Slave</span>
+          <span className="flex-1 text-base font-semibold tracking-tight">Slave</span>
+          <Button
+            variant={tab === "nastaveni" ? "secondary" : "ghost"}
+            className="-mr-2 size-11"
+            aria-label="Nastavení"
+            aria-pressed={tab === "nastaveni"}
+            onClick={doNastaveni}
+          >
+            <Settings className="size-5" />
+          </Button>
         </div>
       </header>
 
@@ -76,7 +96,7 @@ export function AppShell() {
         {tab === "tabulky" ? (
           <TabulkyView otevrena={tabulka} setOtevrena={setTabulka} />
         ) : (
-          <div className="min-h-0 flex-1 overflow-y-auto">{tab === "kalendar" ? <KalendarView /> : <SettingsView />}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto">{tab === "kalendar" ? <KalendarView /> : <SettingsView onZpet={zNastaveni} />}</div>
         )}
       </main>
 

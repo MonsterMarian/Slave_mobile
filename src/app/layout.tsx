@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Slave",
-  description: "Mobilní klient hlasového asistenta Slave, který běží na PC.",
+  description: "Slave v telefonu: kalendář a tabulky.",
 };
 
 export const viewport: Viewport = {
@@ -28,8 +28,7 @@ const themeScript = `try{var d=document.documentElement;var t=localStorage.getIt
  * Běží dřív než kód appky a je schválně mimo něj: rozbitá aktualizace by
  * appku nespustila, takže by se neměl kdo vrátit zpět a telefon by zůstal
  * u bílé obrazovky. Značku `booting` maže appka po naběhnutí; když je po deseti
- * vteřinách pořád tam, nasadí se zpátky verze zabalená v APK. Dokud je OTA
- * vypnuté, značka nikdy nevznikne a skript nic nedělá.
+ * vteřinách pořád tam, nasadí se zpátky verze zabalená v APK.
  */
 const rescueScript = `try{
 if(localStorage.getItem("slave:ota:booting")){

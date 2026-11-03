@@ -67,13 +67,10 @@ function write(key: string, value: string | null): void {
  * vynutit. API vrací aktuální stav hned. Když API selže (výpadek, limit
  * dotazů), zkusí se raw jako záložní cesta - pomalejší, ale funguje.
  */
-// shortcut: OTA vypnuté, dokud appka nemá vlastní repo s releasy — pak nastavit DEFAULT_UPDATE_URL jako v MicroWins
-// (prázdná adresa = checkForUpdate vrací "disabled"; postup v ANDROID.md, oddíl Živé aktualizace).
-// Vzor: "https://api.github.com/repos/<vlastník>/SlaveMobil/contents/ota/latest.json?ref=main"
-export const DEFAULT_UPDATE_URL = "";
+export const DEFAULT_UPDATE_URL =
+  "https://api.github.com/repos/MonsterMarian/Slave_mobile/contents/ota/latest.json?ref=main";
 
-// Vzor: "https://raw.githubusercontent.com/<vlastník>/SlaveMobil/main/ota/latest.json"
-const FALLBACK_UPDATE_URL = "";
+export const FALLBACK_UPDATE_URL = "https://raw.githubusercontent.com/MonsterMarian/Slave_mobile/main/ota/latest.json";
 
 export function getUpdateUrl(): string {
   return read(URL_KEY) ?? DEFAULT_UPDATE_URL;
@@ -287,6 +284,15 @@ async function fetchManifest(url: string): Promise<UpdateManifest> {
   return body;
 }
 
+/**
+ * Adresa balíku z manifestu. Relativní jméno se skládá vůči raw, ne vůči adrese
+ * manifestu - ta může mířit na API, kde balík neleží.
+ */
+export function resolveBundleUrl(bundle: string, manifestUrl: string): string {
+  const base = manifestUrl === DEFAULT_UPDATE_URL ? FALLBACK_UPDATE_URL : manifestUrl;
+  return new URL(bundle, base).toString();
+}
+
 export type UpdateCheck =
   | { kind: "disabled" }
   | { kind: "up-to-date"; version: string | null }
@@ -321,10 +327,7 @@ export async function checkForUpdate(): Promise<UpdateCheck> {
       return { kind: "up-to-date", version: current };
     }
 
-    // Relativní jméno balíku se skládá vůči raw, ne vůči adrese manifestu -
-    // ta může mířit na API, kde balík neleží.
-    const base = url === DEFAULT_UPDATE_URL ? FALLBACK_UPDATE_URL : url;
-    const bundleUrl = new URL(manifest.bundle, base).toString();
+    const bundleUrl = resolveBundleUrl(manifest.bundle, url);
     const bundleRes = await fetch(bundleUrl, { cache: "no-store" });
     if (!bundleRes.ok) return { kind: "failed", message: `Balík: HTTP ${bundleRes.status}` };
     const files = (await bundleRes.json()) as BundleFile[];

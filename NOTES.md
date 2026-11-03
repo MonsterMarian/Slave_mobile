@@ -4,6 +4,16 @@ Shrnutí vzniku aplikace a plán dalších kroků. Jeden soubor, ať se nemusí 
 
 ---
 
+## 0. Změna 2026-11-03: appka bez PC
+
+Uživatel: „tu apku zatím udělej bez spojení s PC, zatím mi tam dej jen ten
+excel a kalendář". Spodní lišta Kalendář / Tabulky, Nastavení vpravo nahoře.
+Data jen v telefonu (`localStorage`: `slave:kalendar`, `slave:tabulky`).
+Vzorce jsou kopie `vzorce.ts` z repa Slave (desktop dashboard). Rozhovor,
+Přehled a spárování jsou z UI pryč, kód zůstal. Nové logo (oko) a OTA
+z GitHubu (`MonsterMarian/Slave_mobile`) zapnuté. Sekce níž popisují
+původní klient k PC.
+
 ## 1. Zadání
 
 Mobilní klient **Slave** - hlasového asistenta, který běží na PC (repo `slave`,
