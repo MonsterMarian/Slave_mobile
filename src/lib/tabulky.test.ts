@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { mrizka, nactiTabulky, nastavBunku, novaTabulka, rozmer, TABULKY_KEY, ulozTabulky } from "./tabulky";
+import { mrizka, nactiTabulky, nastavBunku, nastavSirku, novaTabulka, platna, rozmer, sirkaPodleTextu, SIRKA_AUTO_MAX, SIRKA_MAX, SIRKA_MIN, TABULKY_KEY, ulozTabulky } from "./tabulky";
 import { falesneUloziste } from "./test-uloziste";
 import { formatuj, spocitej } from "./vzorce";
 
@@ -58,5 +58,31 @@ describe("úložiště tabulek", () => {
     expect(t.map((x) => x.nazev)).toEqual(["A", "B"]);
     expect(t[0].listy[0].bunky).toEqual({ "0,0": "1" });
     expect(t[1].listy).toHaveLength(1);
+  });
+});
+
+describe("šířky sloupců", () => {
+  const mer = (t: string) => t.length * 8;
+
+  it("podle textu: nejdelší text + okraj, prázdný sloupec výchozí, strop pro dlouhý text", () => {
+    expect(sirkaPodleTextu(["id", "telefonní číslo", ""], mer)).toBe(15 * 8 + 14);
+    expect(sirkaPodleTextu(["", ""], mer)).toBe(84);
+    expect(sirkaPodleTextu(["a"], mer)).toBe(SIRKA_MIN);
+    expect(sirkaPodleTextu(["x".repeat(200)], mer)).toBe(SIRKA_AUTO_MAX);
+  });
+
+  it("ruční šířka se omezí, null vrátí sloupec na šířku podle textu", () => {
+    let l = novaTabulka("T").listy[0];
+    l = nastavSirku(l, 2, 5000);
+    expect(l.sirky).toEqual({ 2: SIRKA_MAX });
+    l = nastavSirku(l, 2, null);
+    expect("sirky" in l).toBe(false);
+  });
+
+  it("načtení: šířky přežijí, nesmysly vypadnou, bez šířek žádný klíč (kvůli porovnání při synchronizaci)", () => {
+    const t = platna({ id: "t", nazev: "T", listy: [{ id: "l", nazev: "L", bunky: {}, sirky: { 0: 120, x: 5, 1: "široký", 200: 50 } }] })!;
+    expect(t.listy[0].sirky).toEqual({ 0: 120 });
+    const bez = platna({ id: "t", nazev: "T", listy: [{ id: "l", nazev: "L", bunky: {} }] })!;
+    expect("sirky" in bez.listy[0]).toBe(false);
   });
 });

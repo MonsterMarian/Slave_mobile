@@ -16,7 +16,14 @@ Při úpravě existující tabulky ji nejdřív načti (`ukaz`) a ulož celou i 
   "listy": [ { "id": "volitelné", "nazev": "List1", "bunky": { "0,0": "Jméno", "0,1": "Telefon", "1,0": "Jan" } } ] }
 ```
 - Klíč buňky je `"řádek,sloupec"` od nuly (`"0,0"` = A1, `"2,1"` = B3). Hodnota je vždy text; prázdné buňky vynech.
-- První řádek = záhlaví. Vzorce začínají `=` a mají anglické funkce s čárkou: `=SUM(B2:B10)`.
+- První řádek = záhlaví. Vzorce začínají `=` a mají anglické funkce s čárkou: `=SUM(B2:B10)`; desetinná čísla
+  ve vzorci s tečkou (`=B2*1.21`). Umí: SUM, AVERAGE, MIN, MAX, COUNT, COUNTA, COUNTBLANK, PRODUCT, MEDIAN, LARGE,
+  SMALL, SUMPRODUCT, ROUND, ROUNDUP, ROUNDDOWN, INT, MOD, POWER, SQRT, ABS, PI, SUMIF(S), COUNTIF(S), AVERAGEIF,
+  IF, IFS, IFERROR, CHOOSE, AND, OR, NOT, ISBLANK, ISNUMBER, ISTEXT, ISERROR, CONCAT, CONCATENATE, TEXTJOIN, LEN,
+  UPPER, LOWER, PROPER, TRIM, LEFT, RIGHT, MID, FIND, SEARCH, SUBSTITUTE, REPT, EXACT, VALUE, VLOOKUP, HLOOKUP,
+  XLOOKUP, MATCH, INDEX. Bez datumových funkcí a odkazů na jiné listy.
+- List smí mít `"sirky": { "1": 160 }` (index sloupce → px). Bez toho se sloupec přizpůsobí textu - šířky nastavuj,
+  jen když o to uživatel řekne. Při přepisu existující tabulky `sirky` zachovej.
 - Telefonní čísla piš jako text tak, jak je uživatel napsal (žádné převody na číslo).
 
 ## Událost v kalendáři

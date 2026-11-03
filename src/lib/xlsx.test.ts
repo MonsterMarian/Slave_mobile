@@ -1,6 +1,6 @@
 import { writeFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { crc32, listXml, nazevSouboru, nazvyListu, xlsx, zip } from "./xlsx";
+import { crc32, listXml, nazevSouboru, nazvyListu, proExcel, xlsx, zip } from "./xlsx";
 import type { Tabulka } from "./tabulky";
 
 const TABULKA: Tabulka = {
@@ -46,5 +46,19 @@ describe("xlsx", () => {
     const data = xlsx(TABULKA);
     expect(new DataView(data.buffer).getUint32(0, true)).toBe(0x04034b50);
     if (process.env.XLSX_VYSTUP) writeFileSync(process.env.XLSX_VYSTUP, data);
+  });
+});
+
+describe("xlsx: novější funkce a šířky", () => {
+  it("_xlfn. jen u novějších funkcí a mimo řetězce", () => {
+    expect(proExcel('CONCAT(A1,"concat(")&textjoin(",",1,A1)')).toBe('_xlfn.CONCAT(A1,"concat(")&_xlfn.TEXTJOIN(",",1,A1)');
+    expect(proExcel("SUM(A1)+_xlfn.XLOOKUP(1,A:A,B:B)")).toBe("SUM(A1)+_xlfn.XLOOKUP(1,A:A,B:B)");
+    expect(listXml({ id: "l", nazev: "L", bunky: { "0,0": "=XLOOKUP(1;A2:A3;B2:B3)" } })).toContain("<f>_xlfn.XLOOKUP(1,A2:A3,B2:B3)</f>");
+  });
+
+  it("šířky: ručně roztažené z px, ostatní podle textu, krátké sloupce bez <col>", () => {
+    const x = listXml({ id: "l", nazev: "L", bunky: { "0,0": "id", "0,1": "telefonní číslo", "0,2": "=1" }, sirky: { 3: 140 } });
+    expect(x).toContain('<cols><col min="2" max="2" width="18.5" customWidth="1"/><col min="4" max="4" width="20" customWidth="1"/></cols><sheetData>');
+    expect(x).not.toContain('min="1"');
   });
 });

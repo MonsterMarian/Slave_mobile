@@ -5,8 +5,30 @@
  *
  * shortcut: bez komprese a bez stylů - přidat, kdyby soubory byly velké nebo bylo potřeba formátování.
  */
-import { normalizuj, nazevSloupce } from "./vzorce";
-import type { List, Tabulka } from "./tabulky";
+import { normalizuj, nazevSloupce, XLFN } from "./vzorce";
+import { SIRKA_AUTO_MAX, type List, type Tabulka } from "./tabulky";
+
+const XLFN_RE = new RegExp(`(^|[^A-Z0-9_.])(${XLFN.join("|")})\\(`, "gi");
+
+/** Novější funkce (CONCAT, XLOOKUP…) chce Excel v souboru s předponou `_xlfn.`, jinak ukáže #NÁZEV?. Mimo řetězce. */
+export function proExcel(vzorec: string): string {
+  return vzorec
+    .split('"')
+    .map((kus, i) => (i % 2 ? kus : kus.replace(XLFN_RE, (_, pred: string, fn: string) => `${pred}_xlfn.${fn.toUpperCase()}(`)))
+    .join('"');
+}
+
+/** Šířky sloupců v jednotkách Excelu (≈ znaky): ručně roztažené z px, ostatní podle délky textu. */
+export function sirkySloupcu(list: List): Map<number, number> {
+  const out = new Map<number, number>();
+  for (const [k, v] of Object.entries(list.bunky)) {
+    const c = Number(k.split(",")[1]);
+    if (v.startsWith("=")) continue; // výsledek vzorce tu neznáme
+    out.set(c, Math.max(out.get(c) ?? 0, Math.min(SIRKA_AUTO_MAX / 7, v.length * 1.1 + 2)));
+  }
+  for (const [c, px] of Object.entries(list.sirky ?? {})) out.set(Number(c), px / 7);
+  return out;
+}
 
 const enc = new TextEncoder();
 
@@ -103,7 +125,7 @@ function cislo(raw: string): number | null {
 }
 
 function bunkaXml(ref: string, raw: string): string {
-  if (raw.startsWith("=") && raw.length > 1) return `<c r="${ref}"><f>${xml(normalizuj(raw).slice(1))}</f></c>`;
+  if (raw.startsWith("=") && raw.length > 1) return `<c r="${ref}"><f>${xml(proExcel(normalizuj(raw).slice(1)))}</f></c>`;
   const n = cislo(raw);
   if (n !== null) return `<c r="${ref}"><v>${n}</v></c>`;
   return `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${xml(raw)}</t></is></c>`;
@@ -127,9 +149,13 @@ export function listXml(list: List): string {
       return `<row r="${r + 1}">${bunky}</row>`;
     })
     .join("");
+  const sirky = [...sirkySloupcu(list)].filter(([, w]) => w > 8.43).sort((x, y) => x[0] - y[0]);
+  const cols = sirky.length
+    ? `<cols>${sirky.map(([c, w]) => `<col min="${c + 1}" max="${c + 1}" width="${Math.round(w * 100) / 100}" customWidth="1"/>`).join("")}</cols>`
+    : "";
   return (
     `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>` +
-    `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${telo}</sheetData></worksheet>`
+    `<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${cols}<sheetData>${telo}</sheetData></worksheet>`
   );
 }
 

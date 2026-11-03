@@ -6,7 +6,21 @@ import { Button } from "@/components/ui/button";
 import { NazevDialog, PotvrzeniDialog } from "@/components/ui/dialog";
 import { ulozSoubor } from "@/lib/native";
 import { naplanuj, odebirej } from "@/lib/sync";
-import { MAX_RADKU, mrizka, nactiTabulky, nastavBunku, novaTabulka, novyList, rozmer, ulozTabulky, type Tabulka } from "@/lib/tabulky";
+import {
+  MAX_RADKU,
+  mrizka,
+  nactiTabulky,
+  nastavBunku,
+  nastavSirku,
+  novaTabulka,
+  novyList,
+  rozmer,
+  SIRKA_MAX,
+  SIRKA_MIN,
+  sirkaPodleTextu,
+  ulozTabulky,
+  type Tabulka,
+} from "@/lib/tabulky";
 import { Chyba, formatuj, nazevSloupce, spocitej } from "@/lib/vzorce";
 import { nazevSouboru, xlsx } from "@/lib/xlsx";
 import { cn } from "@/lib/utils";
@@ -70,6 +84,66 @@ function useTabulky() {
   return { tabulky, setTabulky, zmen, chyba };
 }
 
+const SIRKA_ZAHLAVI_RADKU = 40;
+
+/** Šířka textu v px stejným písmem, jakým se kreslí buňky (text-sm, písmo z body). */
+function useMeritko(): (t: string) => number {
+  return React.useMemo(() => {
+    let ctx: CanvasRenderingContext2D | null | undefined;
+    return (t: string) => {
+      if (ctx === undefined) {
+        ctx = document.createElement("canvas").getContext("2d");
+        if (ctx) ctx.font = `14px ${getComputedStyle(document.body).fontFamily}`;
+      }
+      return ctx ? ctx.measureText(t).width : t.length * 8;
+    };
+  }, []);
+}
+
+/**
+ * Úchyt na pravém okraji záhlaví sloupce: tažením se sloupec roztáhne / zúží (uloží se při puštění),
+ * dvojím ťuknutím se vrátí na šířku podle textu.
+ */
+function Uchyt({ sirka, onTah, onKonec, onAuto }: { sirka: number; onTah: (px: number) => void; onKonec: (px: number) => void; onAuto: () => void }) {
+  const tah = React.useRef<{ x: number; od: number; px: number; posun: boolean } | null>(null);
+  const posledniTuk = React.useRef(0);
+  return (
+    <div
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Roztáhnout sloupec (dvojí ťuknutí = podle textu)"
+      className="absolute right-0 top-0 flex h-full w-6 cursor-col-resize touch-none items-center justify-end pr-0.5"
+      onPointerDown={(e) => {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        tah.current = { x: e.clientX, od: sirka, px: sirka, posun: false };
+      }}
+      onPointerMove={(e) => {
+        const t = tah.current;
+        if (!t) return;
+        const dx = e.clientX - t.x;
+        if (Math.abs(dx) > 3) t.posun = true;
+        if (!t.posun) return;
+        t.px = Math.min(SIRKA_MAX, Math.max(SIRKA_MIN, t.od + dx));
+        onTah(t.px);
+      }}
+      onPointerUp={() => {
+        const t = tah.current;
+        tah.current = null;
+        if (!t) return;
+        if (t.posun) return onKonec(t.px);
+        const ted = Date.now();
+        if (ted - posledniTuk.current < 350) {
+          posledniTuk.current = 0;
+          onAuto();
+        } else posledniTuk.current = ted;
+      }}
+      onPointerCancel={() => (tah.current = null)}
+    >
+      <span className="h-4 w-0.5 rounded-full bg-muted-foreground/40" />
+    </div>
+  );
+}
+
 function Editor({
   tabulka,
   zmen,
@@ -96,6 +170,20 @@ function Editor({
 
   const { radky, sloupce } = rozmer(list);
   const hodnoty = React.useMemo(() => spocitej(mrizka(list)), [list]);
+
+  // Šířky: ručně roztažené ze `sirky`, ostatní podle nejdelšího zobrazeného textu ve sloupci.
+  const mer = useMeritko();
+  const podleTextu = React.useMemo(
+    () => Array.from({ length: sloupce }, (_, c) => sirkaPodleTextu(hodnoty.map((r) => (r[c] === undefined ? "" : formatuj(r[c]))), mer)),
+    [hodnoty, sloupce, mer],
+  );
+  const [tazeny, setTazeny] = React.useState<{ c: number; px: number } | null>(null);
+  const sirka = (c: number) => (tazeny?.c === c ? tazeny.px : (list.sirky?.[c] ?? podleTextu[c]));
+  const sirkaTabulky = SIRKA_ZAHLAVI_RADKU + Array.from({ length: sloupce }, (_, c) => sirka(c)).reduce((s, x) => s + x, 0);
+  const zmenSirku = (c: number, px: number | null) => {
+    setTazeny(null);
+    zmen((t) => ({ ...t, listy: t.listy.map((l) => (l.id === list.id ? nastavSirku(l, c, px) : l)) }));
+  };
 
   // Každé písmeno jde rovnou do dat (a za chvíli do úložiště) - rozepsaná buňka se při zavření appky neztratí.
   const napsat = (hodnota: string) => {
@@ -193,19 +281,32 @@ function Editor({
 
       {/* shortcut: vykresluje se celá mřížka (až 1000 × 100), ne jen viditelná část - virtualizovat, až to bude na telefonu pomalé. */}
       <div ref={mrizkaRef} className="min-h-0 flex-1 overflow-auto overscroll-none">
-        <table className="tabular border-separate border-spacing-0 text-sm">
+        <table className="tabular table-fixed border-separate border-spacing-0 text-sm" style={{ width: sirkaTabulky }}>
+          <colgroup>
+            <col style={{ width: SIRKA_ZAHLAVI_RADKU }} />
+            {Array.from({ length: sloupce }, (_, c) => (
+              <col key={c} style={{ width: sirka(c) }} />
+            ))}
+          </colgroup>
           <thead>
             <tr>
-              <th className="sticky left-0 top-0 z-20 h-8 w-10 min-w-10 border-b border-r bg-muted" />
+              <th className="sticky left-0 top-0 z-20 h-8 border-b border-r bg-muted" />
               {Array.from({ length: sloupce }, (_, c) => (
                 <th
                   key={c}
                   className={cn(
-                    "sticky top-0 z-10 h-8 min-w-21 border-b border-r bg-muted text-xs font-medium text-muted-foreground",
+                    "sticky top-0 z-10 h-8 border-b border-r bg-muted text-xs font-medium text-muted-foreground",
                     c === sel[1] && "bg-brand-muted text-brand-muted-foreground",
+                    list.sirky?.[c] !== undefined && "underline decoration-dotted underline-offset-2",
                   )}
                 >
                   {nazevSloupce(c)}
+                  <Uchyt
+                    sirka={sirka(c)}
+                    onTah={(px) => setTazeny({ c, px })}
+                    onKonec={(px) => zmenSirku(c, px)}
+                    onAuto={() => zmenSirku(c, null)}
+                  />
                 </th>
               ))}
             </tr>
@@ -215,7 +316,7 @@ function Editor({
               <tr key={r}>
                 <th
                   className={cn(
-                    "sticky left-0 z-10 h-11 w-10 min-w-10 border-b border-r bg-muted text-xs font-medium text-muted-foreground",
+                    "sticky left-0 z-10 h-11 border-b border-r bg-muted text-xs font-medium text-muted-foreground",
                     r === sel[0] && "bg-brand-muted text-brand-muted-foreground",
                   )}
                 >
@@ -230,7 +331,7 @@ function Editor({
                       onClick={() => vyber(r, c)}
                       data-vybrana={on || undefined}
                       className={cn(
-                        "h-11 max-w-21 min-w-21 scroll-mt-8 scroll-ml-10 truncate border-b border-r px-1.5",
+                        "h-11 scroll-mt-8 scroll-ml-10 truncate border-b border-r px-1.5",
                         typeof v === "number" && "text-right",
                         v instanceof Chyba && "text-destructive",
                         on && "outline-2 -outline-offset-2 outline-brand",

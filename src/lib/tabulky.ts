@@ -12,6 +12,33 @@ export interface List {
   nazev: string;
   /** klíč `řádek,sloupec` od nuly; prázdné buňky tu nejsou */
   bunky: Record<string, string>;
+  /** šířky sloupců roztažené uživatelem (index sloupce → px); sloupec, který tu není, má šířku podle textu */
+  sirky?: Record<string, number>;
+}
+
+export const SIRKA_MIN = 48;
+export const SIRKA_MAX = 600;
+/** Šířka podle textu se zastaví tady - delší text se zkrátí „…", roztáhnout jde ručně až do SIRKA_MAX. */
+export const SIRKA_AUTO_MAX = 280;
+const SIRKA_PRAZDNA = 84;
+const OKRAJ_BUNKY = 14; // px-1.5 vlevo i vpravo + rezerva
+
+const omez = (px: number, max = SIRKA_MAX) => Math.round(Math.min(max, Math.max(SIRKA_MIN, px)));
+
+/** Šířka sloupce podle nejdelšího textu (`mer` = šířka textu v px); prázdný sloupec má výchozí šířku. */
+export function sirkaPodleTextu(texty: string[], mer: (t: string) => number): number {
+  let max = 0;
+  for (const t of texty) if (t) max = Math.max(max, mer(t));
+  return max === 0 ? SIRKA_PRAZDNA : omez(max + OKRAJ_BUNKY, SIRKA_AUTO_MAX);
+}
+
+/** Ruční šířka sloupce, `null` = zpátky podle textu. */
+export function nastavSirku(list: List, c: number, px: number | null): List {
+  const sirky = { ...list.sirky };
+  if (px === null) delete sirky[c];
+  else sirky[c] = omez(px);
+  const { sirky: _, ...zbytek } = list;
+  return Object.keys(sirky).length ? { ...zbytek, sirky } : zbytek;
 }
 
 export interface Tabulka {
@@ -79,7 +106,13 @@ function platnyList(x: unknown): List | null {
       if (m && jeText(v) && v !== "" && Number(m[1]) < MAX_RADKU && Number(m[2]) < MAX_SLOUPCU) bunky[k] = v;
     }
   }
-  return { id: l.id, nazev: l.nazev, bunky };
+  const sirky: Record<string, number> = {};
+  if (l.sirky && typeof l.sirky === "object") {
+    for (const [k, v] of Object.entries(l.sirky)) {
+      if (/^\d+$/.test(k) && Number(k) < MAX_SLOUPCU && typeof v === "number" && Number.isFinite(v)) sirky[k] = omez(v);
+    }
+  }
+  return Object.keys(sirky).length ? { id: l.id, nazev: l.nazev, bunky, sirky } : { id: l.id, nazev: l.nazev, bunky };
 }
 
 export function platna(x: unknown): Tabulka | null {
