@@ -1,4 +1,5 @@
 "use client";
+// shortcut: spojení s PC je v UI vypnuté (2026-11-03) — vrátit, až uživatel řekne
 
 import * as React from "react";
 import { Check, Loader2, Mic, MicOff, Send, Square, X } from "lucide-react";

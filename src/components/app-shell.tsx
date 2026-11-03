@@ -1,40 +1,34 @@
 "use client";
 
 import * as React from "react";
-import { LayoutDashboard, MessageCircle, Settings } from "lucide-react";
-import { ChatView } from "@/components/chat-view";
-import { OverviewView } from "@/components/overview-view";
+import { CalendarDays, Settings, Sheet } from "lucide-react";
+import { KalendarView } from "@/components/kalendar-view";
 import { SettingsView } from "@/components/settings-view";
-import { useSlave, type Status } from "@/components/providers/slave-provider";
+import { TabulkyView } from "@/components/tabulky-view";
 import { applyPendingUpdate, checkForUpdate, markBootSucceeded } from "@/lib/live-update";
 import { logoImage } from "@/lib/logo-image";
 import { hideSplash, isNative, registerBackButton, syncStatusBar } from "@/lib/native";
-import { VOICE_POPISEK } from "@/lib/protocol";
 import { cn } from "@/lib/utils";
 
-type Tab = "chat" | "prehled" | "nastaveni";
+// shortcut: spojení s PC je v UI vypnuté (2026-11-03) - Rozhovor a Přehled (chat-view, overview-view,
+// slave-provider) vrátit do NAV, až uživatel řekne.
+type Tab = "kalendar" | "tabulky" | "nastaveni";
 
 const NAV: { id: Tab; label: string; icon: typeof Settings }[] = [
-  { id: "chat", label: "Rozhovor", icon: MessageCircle },
-  { id: "prehled", label: "Přehled", icon: LayoutDashboard },
+  { id: "kalendar", label: "Kalendář", icon: CalendarDays },
+  { id: "tabulky", label: "Tabulky", icon: Sheet },
   { id: "nastaveni", label: "Nastavení", icon: Settings },
 ];
-
-const STATUS_POPISEK: Record<Status, string> = {
-  nenastaveno: "Nespárováno",
-  pripojuji: "Připojuji…",
-  pripojeno: "Připojeno",
-  odpojeno: "Odpojeno",
-};
 
 /**
  * Nativní chování appky: schování splash screenu po prvním vykreslení,
  * stavová lišta podle tématu, živé aktualizace a hardwarové Zpět
- * (z vedlejší záložky na Rozhovor, z Rozhovoru ven). V prohlížeči nic.
+ * (z otevřené tabulky na seznam, z vedlejší záložky na Kalendář, z Kalendáře ven).
+ * V prohlížeči nic.
  */
-function useNativeShell(tab: Tab, setTab: (t: Tab) => void) {
-  const current = React.useRef(tab);
-  current.current = tab;
+function useNativeShell(onBack: () => boolean) {
+  const current = React.useRef(onBack);
+  current.current = onBack;
 
   React.useEffect(() => {
     void hideSplash();
@@ -47,55 +41,42 @@ function useNativeShell(tab: Tab, setTab: (t: Tab) => void) {
 
   React.useEffect(() => {
     let cleanup = () => {};
-    void registerBackButton(() => {
-      if (current.current === "chat") return false;
-      setTab("chat");
-      return true;
-    }).then((fn) => {
+    void registerBackButton(() => current.current()).then((fn) => {
       cleanup = fn;
     });
     return () => cleanup();
-  }, [setTab]);
+  }, []);
 }
 
 export function AppShell() {
-  const { status, voiceState } = useSlave();
-  const [tab, setTab] = React.useState<Tab>("chat");
+  const [tab, setTab] = React.useState<Tab>("kalendar");
+  const [tabulka, setTabulka] = React.useState<string | null>(null);
   const [native, setNative] = React.useState(false);
 
-  useNativeShell(tab, setTab);
+  useNativeShell(() => {
+    if (tab === "tabulky" && tabulka) setTabulka(null);
+    else if (tab !== "kalendar") setTab("kalendar");
+    else return false;
+    return true;
+  });
   React.useEffect(() => setNative(isNative()), []);
 
-  const active = voiceState === "listening" || voiceState === "speaking" || voiceState === "thinking";
-  const subtitle = status === "pripojeno" && voiceState ? VOICE_POPISEK[voiceState] : STATUS_POPISEK[status];
-
   return (
-    // h-dvh: chat má pole dole a seznam nad ním roluje sám, stránka ne.
+    // h-dvh: lišty stojí, roluje jen obsah záložky (editor tabulky má vlastní posuv).
     <div className={cn("flex h-dvh flex-col", native && "select-none")}>
       <header className="mw-safe-top mw-safe-x border-b bg-background/85 backdrop-blur">
         <div className="mx-auto flex h-14 w-full max-w-2xl items-center gap-3 px-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={logoImage} alt="" className={cn("size-8 object-contain", active && "slave-pulse")} />
-          <div className="flex min-w-0 flex-col leading-tight">
-            <span className="text-base font-semibold tracking-tight">Slave</span>
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <span
-                className={cn(
-                  "size-1.5 rounded-full",
-                  status === "pripojeno" ? "bg-brand" : status === "odpojeno" ? "bg-destructive" : "bg-muted-foreground",
-                )}
-              />
-              {subtitle}
-            </span>
-          </div>
+          <img src={logoImage} alt="" className="size-8 object-contain" />
+          <span className="text-base font-semibold tracking-tight">Slave</span>
         </div>
       </header>
 
       <main className="mw-safe-x mx-auto flex min-h-0 w-full max-w-2xl flex-1 flex-col">
-        {tab === "chat" ? (
-          <ChatView onOpenSettings={() => setTab("nastaveni")} />
+        {tab === "tabulky" ? (
+          <TabulkyView otevrena={tabulka} setOtevrena={setTabulka} />
         ) : (
-          <div className="min-h-0 flex-1 overflow-y-auto">{tab === "prehled" ? <OverviewView /> : <SettingsView />}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto">{tab === "kalendar" ? <KalendarView /> : <SettingsView />}</div>
         )}
       </main>
 
@@ -107,10 +88,13 @@ export function AppShell() {
               <button
                 key={id}
                 type="button"
-                onClick={() => setTab(id)}
+                onClick={() => {
+                  if (id === tab && id === "tabulky") setTabulka(null);
+                  setTab(id);
+                }}
                 aria-current={on ? "page" : undefined}
                 className={cn(
-                  "flex flex-1 flex-col items-center gap-0.5 py-2 text-[11px] transition-colors",
+                  "flex min-h-14 flex-1 flex-col items-center gap-0.5 py-2 text-[11px] transition-colors",
                   on ? "text-foreground" : "text-muted-foreground",
                 )}
               >

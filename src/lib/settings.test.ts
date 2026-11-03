@@ -1,3 +1,4 @@
+// shortcut: spojení s PC je v UI vypnuté (2026-11-03) — vrátit, až uživatel řekne
 import { describe, expect, it } from "vitest";
 import { formatToken, httpUrl, isConfigured, normalizeToken, parseHost, wsUrl, DEFAULT_SETTINGS } from "./settings";
 

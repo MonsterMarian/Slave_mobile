@@ -1,3 +1,4 @@
+// shortcut: spojení s PC je v UI vypnuté (2026-11-03) — vrátit, až uživatel řekne
 /**
  * Hlas v telefonu: diktování (rozpoznávání řeči Androidu) a předčítání.
  *

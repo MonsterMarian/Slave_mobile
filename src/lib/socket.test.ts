@@ -1,3 +1,4 @@
+// shortcut: spojení s PC je v UI vypnuté (2026-11-03) — vrátit, až uživatel řekne
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { reconnectDelay, RECONNECT_MAX_MS } from "./reconnect";
 import { SlaveSocket, type SocketStatus } from "./socket";
