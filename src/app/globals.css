@@ -4,9 +4,8 @@
 
 /*
  * Paleta shadcn/ui (zinc) jako v MicroWins a mpL. Jediný barevný akcent
- * (--brand) si uživatel volí v Nastavení: hodnoty jsou v src/lib/barvy.ts,
- * CSS z nich generuje layout.tsx (html[data-accent=…]). Tady je jen záloha
- * = výchozí S/_ave modrá. Rozbor v docs/barvy.md.
+ * (--brand) je S/_ave modrá, pro tmavý a světlý režim zvlášť (WCAG AA);
+ * stejné hodnoty jsou v src/lib/barvy.ts kvůli testu. Rozbor v docs/barvy.md.
  */
 :root {
   --radius: 0.625rem;

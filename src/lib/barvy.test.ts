@@ -1,38 +1,29 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { akcentCss, kontrast, PALETY, POVRCHY, VYCHOZI_AKCENT } from "./barvy";
-
-const HEX = /^#[0-9A-F]{6}$/i;
+import { AKCENT, kontrast, POVRCHY } from "./barvy";
 
 describe("kontrast WCAG", () => {
   it("známé hodnoty", () => {
     expect(kontrast("#000000", "#FFFFFF")).toBeCloseTo(21, 5);
     expect(kontrast("#FFFFFF", "#FFFFFF")).toBeCloseTo(1, 5);
     expect(kontrast("#0866FF", "#FFFFFF")).toBeCloseTo(4.8, 1);
-    expect(kontrast("#38BDF8", "#09090B")).toBeCloseTo(9.3, 1);
   });
 });
 
-describe("palety", () => {
-  it("výchozí sky existuje, id jsou unikátní", () => {
-    expect(PALETY.some((p) => p.id === VYCHOZI_AKCENT)).toBe(true);
-    expect(new Set(PALETY.map((p) => p.id)).size).toBe(PALETY.length);
+describe("akcent S/_ave modrá", () => {
+  it.each(["tmava", "svetla"] as const)("%s: kontrast ≥ 4,5 na pozadí, kartě i pro text na tlačítku", (rezim) => {
+    const v = AKCENT[rezim];
+    for (const povrch of POVRCHY[rezim]) expect(kontrast(v.akcent, povrch)).toBeGreaterThanOrEqual(4.5);
+    expect(kontrast(v.text, v.akcent)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it.each(PALETY)("$id: obě varianty, text na akcentu, kontrast ≥ 4,5", (p) => {
-    for (const rezim of ["tmava", "svetla"] as const) {
-      const v = p[rezim];
-      expect(v.akcent).toMatch(HEX);
-      expect(v.text).toMatch(HEX);
-      for (const povrch of POVRCHY[rezim]) expect(kontrast(v.akcent, povrch)).toBeGreaterThanOrEqual(4.5);
-      expect(kontrast(v.text, v.akcent)).toBeGreaterThanOrEqual(4.5);
-    }
-  });
-
-  it("CSS má pravidlo pro každou paletu v obou režimech", () => {
-    const css = akcentCss();
-    for (const p of PALETY) {
-      expect(css).toContain(`html[data-accent="${p.id}"]{--brand:${p.svetla.akcent}`);
-      expect(css).toContain(`html.dark[data-accent="${p.id}"]{--brand:${p.tmava.akcent}`);
-    }
+  it("globals.css používá tytéž hodnoty", () => {
+    const css = readFileSync("src/app/globals.css", "utf8").toLowerCase();
+    const svetly = css.slice(css.indexOf(":root {"), css.indexOf(".dark {"));
+    const tmavy = css.slice(css.indexOf(".dark {"), css.indexOf("@theme"));
+    expect(svetly).toContain(`--brand: ${AKCENT.svetla.akcent.toLowerCase()};`);
+    expect(svetly).toContain(`--brand-foreground: ${AKCENT.svetla.text.toLowerCase()};`);
+    expect(tmavy).toContain(`--brand: ${AKCENT.tmava.akcent.toLowerCase()};`);
+    expect(tmavy).toContain(`--brand-foreground: ${AKCENT.tmava.text.toLowerCase()};`);
   });
 });

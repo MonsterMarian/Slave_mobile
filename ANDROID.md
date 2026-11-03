@@ -145,9 +145,10 @@ To OTA nevymění.
 
 ## Změna ikony nebo splashe
 
-Originál je `assets/logo_source.jpg` (jantarové oko na tmavém, nejednolitém
-pozadí). Z něj `npm run logo:source` udělá `assets/logo_mark.png` s
-**průhledným** pozadím (alfa podle jasu, ořez kolem značky). Výměna loga:
+Originál je `assets/logo_source.jpg` (oranžové oko z Gemini na tmavém,
+nejednolitém pozadí). Z něj `npm run logo:source` udělá `assets/logo_mark.png`
+s **průhledným** pozadím (alfa podle jasu, ořez kolem značky) a přebarví ho do
+S/_ave modré (jas → modrý přechod `PRECHOD` ve skriptu). Výměna loga:
 
 ```bash
 # nový obrázek do assets/logo_source.jpg

@@ -1,5 +1,5 @@
 # AgentMEMORY — SlaveMobil (S/_ave)
-Aktualizováno: 2026-11-03 11:37
+Aktualizováno: 2026-11-03 11:44
 
 ## Cíl repa
 Android appka Slave (Capacitor). Teď (2026-11-03) **offline**: Kalendář a Tabulky (mini Excel),
@@ -24,7 +24,7 @@ data jen v telefonu. Dřív klient k PC (Rozhovor / Přehled / spárování) - k
 
 - 2026-11-03 — Nastavení vpravo nahoře (ozubené kolo), OTA z GitHubu zapnuté (repo MonsterMarian/Slave_mobile).
 
-- 2026-11-03 — Jméno S/_ave (wordmark v hlavičce bez loga, appName, strings.xml, title); volba akcentu (7 barev).
+- 2026-11-03 — Jméno S/_ave (wordmark v hlavičce bez loga, appName, strings.xml, title); jediný akcent S/_ave modrá; logo přebarvené do modré.
 
 ## Rozpracováno
 - (nic)
@@ -51,10 +51,11 @@ data jen v telefonu. Dřív klient k PC (Rozhovor / Přehled / spárování) - k
 
 - 2026-11-03 — Jméno appky je **S/_ave** (firma slashunderscore), wordmark `S` + `/_` v akcentu + `ave`.
   Logo jen na ikoně a splashi, ne v hlavičce. Změna appName/strings.xml = nové APK.
-- 2026-11-03 — Akcent: `src/lib/barvy.ts` (PALETY, jediný zdroj; výchozí `sky`), CSS generuje `layout.tsx`
-  (`html[data-accent]`, `html.dark[data-accent]`), skript v `<head>` nasadí `localStorage["slave:accent"]` před
-  paintem. `--brand-muted` = color-mix 15 % do pozadí (neprůhledné kvůli sticky záhlaví). Test hlídá WCAG ≥ 4,5
-  na pozadí i kartě i text na akcentu. Rozbor: `docs/barvy.md`.
+- 2026-11-03 — Akcent: jen **S/_ave modrá** (tmavý #38BDF8 / text #09090B, světlý #0369A1 / bílý text) v
+  `globals.css`; `src/lib/barvy.ts` + test hlídají WCAG ≥ 4,5 a shodu s CSS. Výběr 7 barev uživatel zrušil
+  (kód v commitu c4af6d6). `--brand-muted` = color-mix 15 % do pozadí (neprůhledné kvůli sticky záhlaví).
+- 2026-11-03 — Logo modré: `logo-from-source.mjs` mapuje jas na modrý přechod (`PRECHOD`), ne `modulate({hue})`
+  (to dávalo tyrkysovou a zelenavé pozadí). Ikony/splash přes `npm run android:assets`.
 
 ## Log (posledních ~30)
 - 2026-11-03 11:08 — appka bez PC: Kalendář + Tabulky offline, testy a build zelené.
@@ -62,3 +63,4 @@ data jen v telefonu. Dřív klient k PC (Rozhovor / Přehled / spárování) - k
 - 2026-11-03 11:18 — Nastavení do hlavičky, OTA z GitHubu, remote origin, docs.
 - 2026-11-03 11:27 — test na telefonu: kalendář, tabulky, force-stop OK; oprava: vybraná buňka se posune do zobrazení, české uvozovky; OTA balík 2026.11.03.10.26.
 - 2026-11-03 11:37 — S/_ave wordmark, volba barvy akcentu (7 palet, WCAG test), docs/barvy.md, APK + OTA 2026.11.03.10.32.
+- 2026-11-03 11:44 — jen modrá (výběr barev pryč), logo přebarvené do modré, APK + OTA 2026.11.03.10.40.

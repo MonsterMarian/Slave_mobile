@@ -1,13 +1,13 @@
 # Barvy S/_ave
 
-Výchozí akcent je **S/_ave modrá (sky)**, oranžová z loga je volba. Každá barva má variantu pro tmavý
-a světlý režim spočítanou na kontrast WCAG AA (≥ 4,5:1 pro text i pro popisek na tlačítku).
+Akcent je jediný: **S/_ave modrá**. Má variantu pro tmavý a světlý režim spočítanou na kontrast WCAG AA
+(≥ 4,5:1 pro text i pro popisek na tlačítku). Logo appky (oko) je ve stejné modré.
 
 ## Proč modrá jako výchozí
 - **Značka:** web slashunderscore je monochromní (#121212, #0E0E0E) s modrými akcenty #38BDF8 a #2563EB — S/_ave
   je produkt té firmy, takže sdílí její akcent.
-- **Komplementární k logu:** logo je teplé (zlatá #F8C868 → oranžová #F89848 → korálová #E86838). Modrá leží na
-  barevném kole naproti, logo na splashi a ikoně proto vynikne, místo aby splývalo s UI.
+- **Logo:** původně teplé oko (zlatá #F8C868 → oranžová #F89848 → korálová #E86838) je od 2026-11-03
+  přebarvené do stejné modré, appka i ikona tak mají jednu barvu.
 - **Chyby musí být vidět:** v tabulkách se chyby (#DĚLENÍ/0!) a mazání značí červeně (odstín 0°). Oranžová má
   odstín 27°, jantar z mpL 37° — pro lidi s protanopií/deuteranopií jsou téměř stejné jako červená. Modrá (198°)
   je od červené co nejdál.
@@ -29,27 +29,21 @@ režimu ho zastupuje #38BDF8 / #6B9BFF.
 
 ## Paleta
 
-Kontrast tmavé varianty proti pozadí `#09090B` (a kartě `#18181B`), světlé proti bílé; text na tlačítku proti
-akcentu. Hodnoty jsou v `src/lib/barvy.ts` (jediný zdroj - CSS se z nich generuje), `src/lib/barvy.test.ts`
-hlídá, že každá barva má obě varianty a kontrast ≥ 4,5:1 na pozadí i kartě i pro text na akcentu.
-
-| id | název v UI | tmavý režim | text na tlačítku | světlý režim | text na tlačítku |
-|---|---|---|---|---|---|
-| `sky` (výchozí) | S/_ave modrá | `#38BDF8` (9,3:1, karta 8,3:1) | `#09090B` (9,3:1) | `#0369A1` (5,9:1) | `#FFFFFF` (5,9:1) |
-| `orange` | Oranžová z loga | `#F89848` (9,1:1, karta 8,1:1) | `#09090B` (9,1:1) | `#C2410C` (5,2:1) | `#FFFFFF` (5,2:1) |
-| `fb` | Facebook modrá | `#4B9BFF` (7,0:1, karta 6,3:1) | `#09090B` (7,0:1) | `#0866FF` (4,8:1) | `#FFFFFF` (4,8:1) |
-| `of` | OnlyFans azurová | `#00AFF0` (7,9:1, karta 7,1:1) | `#09090B` (7,9:1) | `#0077A8` (5,0:1) | `#FFFFFF` (5,0:1) |
-| `indigo` | Indigo | `#8C95FF` (7,4:1, karta 6,6:1) | `#09090B` (7,4:1) | `#4F46E5` (6,3:1) | `#FFFFFF` (6,3:1) |
-| `excel` | Excel zelená | `#33C481` (8,9:1, karta 7,9:1) | `#09090B` (8,9:1) | `#107C41` (5,3:1) | `#FFFFFF` (5,3:1) |
-| `violet` | Fialová (Material 3) | `#D0BCFF` (11,7:1, karta 10,4:1) | `#09090B` (11,7:1) | `#6750A4` (6,4:1) | `#FFFFFF` (6,4:1) |
+| režim | akcent | kontrast na pozadí | text na tlačítku |
+|---|---|---|---|
+| tmavý (`#09090B`, karta `#18181B`) | `#38BDF8` | 9,3:1 (karta 8,3:1) | `#09090B` (9,3:1) |
+| světlý (`#FDFDFD` / bílá) | `#0369A1` | 5,9:1 | `#FFFFFF` (5,9:1) |
 
 `accent-soft` (`--brand-muted`, pozadí vybraného dne, buňky a aktivní záložky) je akcent namíchaný na 15 %
 do pozadí - neprůhledně, aby přes sticky záhlaví tabulky neprosvítal obsah. Chyby a mazání (`--destructive`)
-jsou na akcentu nezávislé. Splash a ikona appky se s akcentem nemění (jsou z loga).
+zůstávají červené.
 
-## Jak to funguje
-- `<html data-accent="sky">` - skript v `<head>` (`layout.tsx`) ho nastaví z `localStorage["slave:accent"]`
-  dřív, než se cokoli vykreslí, takže jiná barva neprobliká.
-- `layout.tsx` vloží `<style>` z `akcentCss()`: `html[data-accent=…]` (světlý) a `html.dark[data-accent=…]`
-  (tmavý) přepíšou `--brand` a `--brand-foreground`. Tailwind tokeny (`bg-brand`, `text-brand`, …) zůstávají.
-- Nová barva = řádek v `PALETY`; test ji nepustí, když nemá kontrast.
+Hodnoty jsou v `src/app/globals.css` (`--brand`, `--brand-foreground`) a kvůli testu v `src/lib/barvy.ts`;
+`src/lib/barvy.test.ts` hlídá, že sedí s CSS a mají kontrast ≥ 4,5:1 na pozadí, kartě i pro text na tlačítku.
+
+## Vyřazené volby
+Uživatel 2026-11-03 nejdřív dostal výběr ze sedmi barev a pak ho zrušil - zůstala jen S/_ave modrá.
+Vyřazené: oranžová z loga (`#F89848` / `#C2410C`), Facebook modrá (`#4B9BFF` / `#0866FF`), OnlyFans azurová
+(`#00AFF0` / `#0077A8`), indigo (`#8C95FF` / `#4F46E5`), Excel zelená (`#33C481` / `#107C41`) a fialová
+z Material 3 (`#D0BCFF` / `#6750A4`) - všechny ve tvaru tmavý / světlý, s kontrastem ≥ 4,5:1. Kód výběru
+je v gitu (commit c4af6d6), kdyby se vracel.
