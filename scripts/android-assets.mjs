@@ -9,10 +9,11 @@ const RES = path.join("android", "app", "src", "main", "res");
  *
  * Předloha s vlastním pozadím zapečeným v pixelech by se v adaptivní ikoně
  * skládala s barvou pod ní a byla by vidět dvě pozadí přes sebe (zkušenost
- * z MicroWins). Proto je značka - jantarové jádro Slave - SVG s průhledným
- * okolím a pozadí si odsud řídí jediná konstanta. `sharp` čte SVG přímo.
+ * z MicroWins). Proto je značka - jantarové oko Slave - PNG s průhledným
+ * okolím a pozadí si odsud řídí jediná konstanta. PNG se dělá z originálu
+ * (`assets/logo_source.jpg`, tmavé pozadí) skriptem `npm run logo:source`.
  */
-const MARK = "assets/logo_mark.svg";
+const MARK = "assets/logo_mark.png";
 
 /** Pozadí ikony v launcheru: obsidián, stejný jako appka. */
 const BRAND_NAVY = "#09090B";
@@ -219,7 +220,7 @@ async function writeLogoModule() {
   await write(
     path.join("src", "lib", "logo-image.ts"),
     Buffer.from(
-      "// Generováno `npm run android:assets` z assets/logo_mark.svg. Needitovat ručně.\n" +
+      `// Generováno \`npm run android:assets\` z ${MARK}. Needitovat ručně.\n` +
         `export const logoImage = "data:image/png;base64,${png.toString("base64")}";\n`,
     ),
   );
