@@ -14,6 +14,21 @@ Přehled a spárování jsou z UI pryč, kód zůstal. Nové logo (oko) a OTA
 z GitHubu (`MonsterMarian/Slave_mobile`) zapnuté. Sekce níž popisují
 původní klient k PC.
 
+## 0a. Změna 2026-11-03: synchronizace a příkazy přes Supabase
+
+Telefon a PC se nespojují přímo, potkávají se v Supabase (tabulky `tabulky`,
+`udalosti`, `prikazy`; RLS podle přihlášeného uživatele, realtime). Appka dál
+funguje bez účtu. Přibyla záložka Příkaz a v Nastavení přihlášení.
+
+- `src/lib/sync.ts`: tříbodové sloučení (místní, vzdálené, základ). Při konfliktu
+  vyhrává PC. Běží po uložení, při startu, při návratu do appky a na realtime.
+- `pc/most.mjs`: fronta `prikazy` → `claude -p` s `pc/navod.md`. Claude smí
+  jen `Bash(node pc/db.mjs:*)`.
+- „Confirm email" je v projektu vypnuté, uživatel nechce žádné e-maily.
+
+Tabulky mezitím dostaly export `.xlsx`, přes 50 funkcí a šířku sloupců.
+`vzorce.ts` se tím odchýlil od kopie v repu Slave.
+
 ## 1. Zadání
 
 Mobilní klient **Slave** - hlasového asistenta, který běží na PC (repo `slave`,
@@ -85,16 +100,16 @@ shadcn/ui · lucide-react · Vitest · Capacitor 8.
 | **Kalendář jen po minutě** | Události se mění zřídka a 5 s by zbytečně zatěžovalo PC. Sezení a systém jdou po 5 s, tlačítko obnovit načte všechno hned. |
 | **Celodenní události jako místní půlnoc** | `new Date("2026-11-03")` je půlnoc UTC - v Praze 1:00, na západ od Greenwiche předchozí den. |
 | **Chat se neukládá** | Historie rozhovoru žije na PC. Po restartu appky začíná prázdný. |
-| **OTA vypnuté** | Appka zatím nemá vlastní repozitář s releasy. Postup zapnutí je v ANDROID.md. |
+| **OTA zapnuté z veřejného repa** | Appka si balíky stahuje z `MonsterMarian/Slave_mobile`. Do balíku se zapéká i publishable klíč Supabase, data hlídá RLS a přihlášení. |
 
 ---
 
 ## 4. Co dál
 
-- Ověřit na skutečném telefonu: spojení se sidecarem (LAN i Tailscale),
-  preflight `OPTIONS` s `x-agent-token`, diktování česky, předčítání, Ano / Ne.
-- Vlastní GitHub repo → zapnout OTA a vydávat APK přes Releases.
+- Ověřit na telefonu export `.xlsx` (zápis do veřejných Dokumentů na Androidu 13+),
+  tlačítko Zpět u dialogu, mazání listu a zobrazení dat poslaných z PC.
+- Vykreslovat jen viditelnou část mřížky a přidat import `.xlsx`.
 - Release klíč (`android/slave.jks`), dokud appku nemá nikdo jiný.
-- `/api/limity` (sidecar ho mobilnímu tokenu povoluje) zatím appka nečte.
-- Notifikace „Slave čeká na tebe", když je appka na pozadí - potřebovala by
-  službu v popředí nebo push, obojí je nativní práce navíc.
+- Až se vrátí přímé spojení s PC: ověřit sidecar v LAN i přes Tailscale, preflight
+  `OPTIONS` s `x-agent-token`, diktování česky, předčítání, Ano / Ne a `/api/limity`.
+  Notifikace „Slave čeká na tebe" by potřebovala službu v popředí nebo push.

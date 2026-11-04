@@ -1,5 +1,5 @@
 # AgentMEMORY — SlaveMobil (S/_ave)
-Aktualizováno: 2026-11-03 18:52
+Aktualizováno: 2026-11-04 12:29
 
 ## Cíl repa
 Android appka Slave (Capacitor): Kalendář, Tabulky (mini Excel) a Příkaz pro PC. Data v localStorage
@@ -81,6 +81,7 @@ a synchronizovaná přes Supabase s PC (`pc/most.mjs` provádí příkazy z tele
   (to dávalo tyrkysovou a zelenavé pozadí). Ikony/splash přes `npm run android:assets`.
 
 ## Log (posledních ~30)
+- 2026-11-04 12:29 — „updejtni MD soubory“ → README, NOTES a ANDROID srovnané se Supabase, záložkou Příkaz a zapnutým OTA; 87 testů prošlo, žádný balík (jen dokumentace).
 - 2026-11-03 18:52 — „pokračuj“ → nápověda funkcí při psaní vzorce, vizuální kontrola v Chromu, OTA 2026.11.03.17.50.
 - 2026-11-03 18:49 — „šířky sloupců podle textu / tažením + další Excel funkce“ → hotovo, 86 testů, OTA balík; na telefonu neověřeno (bez kabelu).
 - 2026-11-03 17:48 — „hoď tam data“ → pc/.env, most spuštěný, příkaz z fronty → Claude založil tabulku Kontakty (id, jméno,

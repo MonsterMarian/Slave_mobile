@@ -2,8 +2,9 @@
 
 Appka běží v telefonu ze souborů v APK. Není to zástupce na web - nativní obal
 (Capacitor) drží WebView, splash screen, ikonu, stavovou lištu, hardwarové
-tlačítko Zpět, vibrace, rozpoznávání řeči a předčítání. Po síti mluví jen se
-sidecarem Slave na PC.
+tlačítko Zpět, vibrace, rozpoznávání řeči a předčítání. Po síti mluví se Supabase
+(po přihlášení) a s GitHubem (aktualizace). Přímé spojení se sidecarem Slave na PC
+je v UI vypnuté.
 
 Nativní kostra, build skripty a postupy jsou převzaté z MicroWins a mpL (to, co
 mají obě společné). Tenhle soubor je pro toho, kdo appku staví a vydává.
@@ -19,13 +20,15 @@ mají obě společné). Tenhle soubor je pro toho, kdo appku staví a vydává.
 | `android/app/src/main/res/` | ikony, splash, barvy a témata |
 | `scripts/android-assets.mjs` | generátor ikon, splashe a loga v appce z `assets/logo_mark.svg` |
 | `scripts/gradle.mjs` | spustí Gradle s JDK z `gradle.properties` a obchvatem unixových socketů |
-| `scripts/release.mjs` | postaví web s číslem verze (a OTA balík, až bude OTA zapnuté) |
+| `scripts/release.mjs` | postaví web s číslem verze a OTA balík |
 | `scripts/sign-apk.mjs` | podepíše release APK klíčem z `android/keystore.properties` |
 | `src/lib/native.ts` | most do nativní vrstvy (haptika, lišta, splash, tlačítko Zpět) |
 | `src/lib/voice.ts` | diktování (`@capacitor-community/speech-recognition`) a předčítání (`@capacitor-community/text-to-speech`), obojí `cs-CZ` |
 | `src/lib/udalosti.ts`, `tabulky.ts`, `vzorce.ts`, `uloziste.ts` | kalendář, tabulky, vzorce, ukládání do localStorage |
 | `src/lib/settings.ts`, `api.ts`, `socket.ts`, `protocol.ts` | spárování, HTTP API a WebSocket sidecaru (v UI vypnuté) |
 | `src/lib/live-update.ts` | živé aktualizace (OTA) z GitHubu, viz níž |
+| `src/lib/sync.ts`, `supabase/schema.sql` | synchronizace přes Supabase a její schéma |
+| `pc/most.mjs`, `pc/db.mjs` | fronta příkazů na PC a přístup k datům |
 | `out/` | statický export webu, který se do APK kopíruje |
 
 ## Nástroje na tomhle počítači
@@ -85,9 +88,16 @@ Bez kabelu: APK zkopírovat do telefonu a otevřít ho tam. Android se zeptá na
 povolení instalovat z tohoto zdroje - jednorázově potvrď. Play Protect hlásí
 „Neznámá aplikace" - *Další podrobnosti → Přesto nainstalovat*.
 
-## Spojení s PC (v UI vypnuté od 2026-11-03)
+## Synchronizace a příkazy
 
-Platí, až se spojení vrátí; teď appka na PC nesahá.
+`.env.local` s adresou a publishable klíčem Supabase je mimo git, build je ale
+zapéká do OTA balíku, takže jsou na GitHubu veřejné. Publishable klíč je k tomu
+určený, data hlídá RLS a přihlášení. Do `.env.local` proto nikdy nepatří
+`service_role` klíč. Příkazy z telefonu zpracovává na PC `npm run most`, viz README.
+
+## Přímé spojení s PC (v UI vypnuté od 2026-11-03)
+
+Platí, až se přímé spojení vrátí; teď appka na sidecar nesahá.
 
 
 - Na PC: Slave → Nastavení → Telefon → *Povolit přístup z telefonu*, restart
