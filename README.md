@@ -35,8 +35,9 @@ npm run dev
 Aplikace poběží na `http://localhost:3000`. Stavba APK je v [`ANDROID.md`](ANDROID.md),
 rozhodnutí a stav v [`NOTES.md`](NOTES.md).
 
-Synchronizace potřebuje v `.env.local` adresu a publishable klíč projektu Supabase
-a v databázi schéma ze [`supabase/schema.sql`](supabase/schema.sql).
+Synchronizace jde přes Supabase projekt společný s MicroWins a BetterNotes (jeden účet
+pro všechny appky). Adresa a publishable klíč jsou natvrdo v `src/lib/supabase.ts`,
+schéma v [`supabase/schema.sql`](supabase/schema.sql).
 
 ## Příkazy z telefonu na PC
 

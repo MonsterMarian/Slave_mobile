@@ -18,15 +18,15 @@ import { createClient } from "@supabase/supabase-js";
 const KOREN = join(dirname(fileURLToPath(import.meta.url)), "..");
 for (const f of [join(KOREN, ".env.local"), join(KOREN, "pc", ".env")]) if (existsSync(f)) process.loadEnvFile(f);
 
-const URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const KLIC = process.env.SUPABASE_KLIC || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+// Společný projekt s telefonem, MicroWins a BetterNotes (stejné jako src/lib/supabase.ts); pc/.env ho může přepsat.
+const URL = process.env.SUPABASE_URL || "https://mgxbvayypbrrbdzurgcj.supabase.co";
+const KLIC = process.env.SUPABASE_KLIC || "sb_publishable_ejAce0IsaPlrg8CyrzsePQ_LrDDn4ll";
 
 /**
  * Přihlášený klient. Se `token` bez přihlašování (most předává svůj, ať se neplýtvá limitem přihlášení).
  * `obnovovat`: obnovovat token na pozadí (dlouho běžící most) - časovač drží proces naživu, CLI ho nechce.
  */
 export async function prihlas(token = process.env.SLAVE_TOKEN, obnovovat = false) {
-  if (!URL || !KLIC) throw new Error("Chybí SUPABASE_URL / klíč (.env.local nebo pc/.env).");
   const auth = { persistSession: false, autoRefreshToken: obnovovat };
   if (token) return createClient(URL, KLIC, { auth, global: { headers: { Authorization: `Bearer ${token}` } } });
   const sb = createClient(URL, KLIC, { auth });

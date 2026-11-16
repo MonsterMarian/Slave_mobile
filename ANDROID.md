@@ -90,10 +90,10 @@ povolení instalovat z tohoto zdroje - jednorázově potvrď. Play Protect hlás
 
 ## Synchronizace a příkazy
 
-`.env.local` s adresou a publishable klíčem Supabase je mimo git, build je ale
-zapéká do OTA balíku, takže jsou na GitHubu veřejné. Publishable klíč je k tomu
-určený, data hlídá RLS a přihlášení. Do `.env.local` proto nikdy nepatří
-`service_role` klíč. Příkazy z telefonu zpracovává na PC `npm run most`, viz README.
+Adresa a publishable klíč společného Supabase projektu (MicroWins, BetterNotes)
+jsou natvrdo v `src/lib/supabase.ts` a `pc/db.mjs`, takže jsou na GitHubu veřejné.
+Publishable klíč je k tomu určený, data hlídá RLS a přihlášení. Do kódu nikdy
+nepatří `service_role` klíč. Příkazy z telefonu zpracovává na PC `npm run most`, viz README.
 
 ## Přímé spojení s PC (v UI vypnuté od 2026-11-03)
 

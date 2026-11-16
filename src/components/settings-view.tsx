@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/input";
 import { SwitchPill } from "@/components/ui/switch-pill";
-import { klient, nactiPripojeni, prihlasenJako, ulozPripojeni } from "@/lib/supabase";
+import { klient, prihlasenJako } from "@/lib/supabase";
 import { obnovSync, odebirej, stavSync, zapomenSync } from "@/lib/sync";
 import { getServerTheme, getTheme, setTheme, subscribeTheme } from "@/lib/theme";
 
@@ -30,10 +30,8 @@ function ToggleRow({ label, hint, on, onToggle }: { label: string; hint?: string
   );
 }
 
-/** Supabase: projekt (výchozí z buildu) + účet - stejný se přihlašuje PC v `pc/.env`. */
+/** Supabase: společný projekt s MicroWins a BetterNotes + účet - stejný se přihlašuje PC v `pc/.env`. */
 function SyncCard() {
-  const [url, setUrl] = React.useState("");
-  const [klic, setKlic] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [heslo, setHeslo] = React.useState("");
   const [kdo, setKdo] = React.useState<string | null>(null);
@@ -42,22 +40,13 @@ function SyncCard() {
   const stav = React.useSyncExternalStore((fn) => odebirej("stav", fn), stavSync, stavSync);
 
   React.useEffect(() => {
-    const p = nactiPripojeni();
-    setUrl(p.url);
-    setKlic(p.klic);
     void prihlasenJako().then(setKdo);
   }, []);
 
   const prihlasit = async () => {
     setPrace(true);
     setZprava("");
-    ulozPripojeni({ url, klic });
-    const sb = klient();
-    if (!sb) {
-      setPrace(false);
-      return setZprava("Adresa musí začínat https:// a klíč nesmí chybět.");
-    }
-    const { data, error } = await sb.auth.signInWithPassword({ email: email.trim(), password: heslo });
+    const { data, error } = await klient().auth.signInWithPassword({ email: email.trim(), password: heslo });
     setPrace(false);
     if (error) return setZprava(`Přihlášení se nepovedlo: ${error.message}`);
     setHeslo("");
@@ -70,13 +59,7 @@ function SyncCard() {
   const registrovat = async () => {
     setPrace(true);
     setZprava("");
-    ulozPripojeni({ url, klic });
-    const sb = klient();
-    if (!sb) {
-      setPrace(false);
-      return setZprava("Adresa musí začínat https:// a klíč nesmí chybět.");
-    }
-    const { data, error } = await sb.auth.signUp({ email: email.trim(), password: heslo });
+    const { data, error } = await klient().auth.signUp({ email: email.trim(), password: heslo });
     setPrace(false);
     if (error) return setZprava(`Účet se nepodařilo vytvořit: ${error.message}`);
     if (!data.session) return setZprava("Účet je vytvořený. Potvrď ho odkazem v e-mailu a pak se tady přihlas.");
@@ -87,7 +70,7 @@ function SyncCard() {
   };
 
   const odhlasit = async () => {
-    await klient()?.auth.signOut();
+    await klient().auth.signOut();
     zapomenSync();
     setKdo(null);
     setZprava("Odhlášeno. Data v telefonu zůstala.");
@@ -139,20 +122,9 @@ function SyncCard() {
                 Vytvořit účet
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground">Nový účet: vyplň e-mail a heslo (aspoň 6 znaků) a dej Vytvořit účet.</p>
-            <details className="text-xs">
-              <summary className="flex min-h-11 cursor-pointer items-center text-muted-foreground">
-                Projekt {url ? url.replace(/^https:\/\//, "") : "(nevyplněný)"}
-              </summary>
-              <div className="flex flex-col gap-3">
-                <Field label="Adresa projektu" htmlFor="sb-url">
-                  <Input id="sb-url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://xxxx.supabase.co" autoComplete="off" spellCheck={false} className="h-11 font-mono text-xs" />
-                </Field>
-                <Field label="Publishable klíč" htmlFor="sb-klic">
-                  <Input id="sb-klic" value={klic} onChange={(e) => setKlic(e.target.value)} placeholder="sb_publishable_…" autoComplete="off" spellCheck={false} className="h-11 font-mono text-xs" />
-                </Field>
-              </div>
-            </details>
+            <p className="text-xs text-muted-foreground">
+              Účet je společný s MicroWins a BetterNotes. Nový účet: vyplň e-mail a heslo (aspoň 6 znaků) a dej Vytvořit účet.
+            </p>
           </>
         )}
         {zprava ? <p className="text-sm">{zprava}</p> : null}

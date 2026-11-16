@@ -17,8 +17,10 @@ a synchronizovaná přes Supabase s PC (`pc/most.mjs` provádí příkazy z tele
   `tabulky.ts`, `uloziste.ts`, `vzorce.ts` (kopie z repa Slave) + testy `*.test.ts`.
 
 ## Supabase (od 2026-11-03)
-- Projekt https://tvttqesgnzzrtfecrqjt.supabase.co; URL + publishable klíč v `.env.local` (gitignored, ale build je
-  zapéká do OTA balíku → veřejné na GitHubu; publishable klíč je k tomu určený, data hlídá RLS + přihlášení).
+- Od 2026-11-16 společný projekt s MicroWins a BetterNotes https://mgxbvayypbrrbdzurgcj.supabase.co; URL + publishable
+  klíč natvrdo v `src/lib/supabase.ts` (a `pc/db.mjs`), v Nastavení už nejsou. `prejdiNaProjekt()` jednou po přechodu
+  smaže staré `slave:supabase`, relaci `sb-tvttqesgnzzrtfecrqjt-auth-token` a základ `slave:sync:*` (příznak `slave:projekt`).
+  Starý projekt tvttqesgnzzrtfecrqjt už appka nepoužívá (níže popsané platí pro něj historicky).
 - Schéma `supabase/schema.sql` (tabulky, udalosti, prikazy; RLS user_id = auth.uid(); realtime) - v projektu SPUŠTĚNO
   2026-11-03 (SQL Editor přes Chrome, monaco setValue). Účet uživatele: mar1anmoon@seznam.cz (registrace z appky,
   potvrzen SQL `update auth.users set email_confirmed_at`). „Confirm email“ VYPNUTO (uživatel nechce žádné e-maily),
