@@ -7,7 +7,7 @@ import { PrikazyView } from "@/components/prikazy-view";
 import { Button } from "@/components/ui/button";
 import { SettingsView } from "@/components/settings-view";
 import { TabulkyView } from "@/components/tabulky-view";
-import { applyPendingUpdate, checkForUpdate, markBootSucceeded } from "@/lib/live-update";
+import { markBootSucceeded, startAutoUpdate } from "@/lib/live-update";
 import { hideSplash, isNative, registerBackButton, syncStatusBar, zavriDialog } from "@/lib/native";
 import { spustSync } from "@/lib/sync";
 import { cn } from "@/lib/utils";
@@ -39,10 +39,11 @@ function useNativeShell(onBack: () => boolean) {
     void syncStatusBar(document.documentElement.classList.contains("dark"));
     markBootSucceeded();
     const stopSync = spustSync();
-    void applyPendingUpdate().then((res) => {
-      if (!res.applied) void checkForUpdate();
-    });
-    return stopSync;
+    const stopUpdates = startAutoUpdate();
+    return () => {
+      stopSync();
+      stopUpdates();
+    };
   }, []);
 
   React.useEffect(() => {

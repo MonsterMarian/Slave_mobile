@@ -6,19 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/input";
 import { SwitchPill } from "@/components/ui/switch-pill";
-import {
-  applyPendingUpdate,
-  checkForUpdate,
-  currentBundleVersion,
-  DEFAULT_UPDATE_URL,
-  getUpdateUrl,
-  pendingBundleVersion,
-  setUpdateUrl,
-} from "@/lib/live-update";
 import { klient, nactiPripojeni, prihlasenJako, ulozPripojeni } from "@/lib/supabase";
 import { obnovSync, odebirej, stavSync, zapomenSync } from "@/lib/sync";
 import { getServerTheme, getTheme, setTheme, subscribeTheme } from "@/lib/theme";
-import { cn } from "@/lib/utils";
 
 // shortcut: spojení s PC je v UI vypnuté (2026-11-03) - spárování (adresa, port, token, Vyzkoušet spojení)
 // a předčítání jsou v gitu v commitu b227d3c, vrátit, až uživatel řekne.
@@ -37,109 +27,6 @@ function ToggleRow({ label, hint, on, onToggle }: { label: string; hint?: string
       </span>
       <SwitchPill on={on} />
     </button>
-  );
-}
-
-/** Živé aktualizace z GitHubu - stejně jako MicroWins a mpL (hláška podle opravy mpL 5d58c02). */
-function UpdateCard() {
-  const [url, setUrl] = React.useState("");
-  const [current, setCurrent] = React.useState<string | null>(null);
-  const [pending, setPending] = React.useState<string | null>(null);
-  const [checking, setChecking] = React.useState(false);
-  const [statusMsg, setStatusMsg] = React.useState("");
-
-  React.useEffect(() => {
-    setUrl(getUpdateUrl());
-    setCurrent(currentBundleVersion());
-    setPending(pendingBundleVersion());
-  }, []);
-
-  const onApply = async () => {
-    const res = await applyPendingUpdate();
-    if (res.error) {
-      setStatusMsg("Nasazení selhalo: " + res.error);
-      setPending(pendingBundleVersion());
-      setCurrent(currentBundleVersion());
-    } else if (!res.applied) {
-      setStatusMsg("Tahle verze už běží.");
-      setPending(null);
-    }
-  };
-
-  const onCheck = async () => {
-    setUpdateUrl(url);
-    setChecking(true);
-    setStatusMsg("");
-    const res = await checkForUpdate();
-    setChecking(false);
-    const waiting = pendingBundleVersion();
-    setPending(waiting);
-
-    if (res.kind === "downloaded") {
-      setStatusMsg(`Aktualizace ${res.version} stažená. Nasadí se tlačítkem nebo po zavření a otevření appky.`);
-    } else if (res.kind === "up-to-date") {
-      // „up-to-date" přijde i ve chvíli, kdy nejnovější verze je stažená a jen čeká na nasazení.
-      setStatusMsg(waiting ? "Nejnovější verze je stažená, stačí ji nasadit." : "Máš nejnovější verzi.");
-    } else if (res.kind === "disabled") {
-      setStatusMsg("Aktualizace jdou jen v appce v telefonu.");
-    } else {
-      setStatusMsg("Aktualizace se nepovedla: " + res.message);
-    }
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Aktualizace z GitHubu</CardTitle>
-        <CardDescription>
-          Appka si při startu sama stáhne novou verzi. Nové APK je potřeba jen při zásahu do nativní části (ikona,
-          oprávnění, pluginy).
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" className="h-11" disabled={checking} onClick={() => void onCheck()}>
-            <RefreshCw className={cn(checking && "animate-spin")} />
-            {checking ? "Hledám…" : "Zkontrolovat teď"}
-          </Button>
-          {pending ? (
-            <Button variant="brand" className="h-11" onClick={() => void onApply()}>
-              Nasadit {pending}
-            </Button>
-          ) : null}
-        </div>
-        <p className="tabular text-xs text-muted-foreground">
-          {pending ? `Běží ${current ?? "verze z APK"}, čeká ${pending}` : current ? `Verze ${current}` : "Vývojová verze"}
-        </p>
-        {statusMsg ? <p className="text-sm">{statusMsg}</p> : null}
-        <details className="text-xs">
-          <summary className="flex min-h-11 cursor-pointer items-center text-muted-foreground">
-            Adresa manifestu {url === DEFAULT_UPDATE_URL ? "(výchozí)" : "(vlastní)"}
-          </summary>
-          <Input
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            onBlur={() => setUpdateUrl(url)}
-            placeholder={DEFAULT_UPDATE_URL}
-            autoComplete="off"
-            spellCheck={false}
-            className="h-11 font-mono text-xs"
-          />
-          {url !== DEFAULT_UPDATE_URL ? (
-            <button
-              type="button"
-              onClick={() => {
-                setUrl(DEFAULT_UPDATE_URL);
-                setUpdateUrl(DEFAULT_UPDATE_URL);
-              }}
-              className="min-h-11 text-muted-foreground"
-            >
-              Vrátit výchozí adresu
-            </button>
-          ) : null}
-        </details>
-      </CardContent>
-    </Card>
   );
 }
 
@@ -300,8 +187,6 @@ export function SettingsView({ onZpet }: { onZpet: () => void }) {
       </Card>
 
       <SyncCard />
-
-      <UpdateCard />
     </div>
   );
 }

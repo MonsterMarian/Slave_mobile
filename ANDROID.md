@@ -134,9 +134,10 @@ manifest bez přihlášení:
   (API kvůli čerstvosti; když selže, záloha přes `raw.githubusercontent.com`)
 - balík: `https://raw.githubusercontent.com/MonsterMarian/Slave_mobile/main/ota/bundle-<verze>.json`
 
-Appka při startu nasadí balík stažený minule a na pozadí se podívá po novějším.
-Ručně: Nastavení (vpravo nahoře) → Aktualizace z GitHubu → *Zkontrolovat teď*
-→ *Nasadit …* (nebo zavřít a otevřít appku).
+Vše je automatické, v Nastavení nic není: při startu appka nasadí balík stažený
+minule, jinak se podívá po novějším; po návratu do appky (nejdřív po 5 min)
+kontroluje znovu a stažený balík nasadí při odchodu z appky, takže po návratu
+už běží nová verze.
 
 **Vydání aktualizace webu** (změna v `src/`):
 
