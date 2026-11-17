@@ -45,14 +45,16 @@ export function TabyView({ doNastaveni }: { doNastaveni: () => void }) {
     return () => document.removeEventListener("visibilitychange", znovu);
   }, [nacti]);
 
-  const naPc = async (t: Tab) => {
+  // klic = url tabu, nebo "vse"; potvrzení na tlačítku zmizí po 3 s
+  const prikaz = async (text: string, klic: string) => {
     const sb = klient();
     if (!sb) return;
-    const { error } = await sb.from("prikazy").insert({ text: `Otevři na PC tuhle stránku: ${t.url}` });
+    const { error } = await sb.from("prikazy").insert({ text });
     if (error) return setChyba(`Neodesláno: ${error.message}`);
-    setPoslano(t.url);
-    setTimeout(() => setPoslano((u) => (u === t.url ? null : u)), 3000);
+    setPoslano(klic);
+    setTimeout(() => setPoslano((u) => (u === klic ? null : u)), 3000);
   };
+  const naPc = (t: Tab) => prikaz(`Otevři na PC tuhle stránku: ${t.url}`, t.url);
 
   if (pripojeno === false) {
     return (
@@ -74,6 +76,9 @@ export function TabyView({ doNastaveni }: { doNastaveni: () => void }) {
         </Button>
       </div>
       {kdy ? <p className="tabular text-xs text-muted-foreground">Odesláno z Kiwi {new Date(kdy).toLocaleString("cs-CZ")}</p> : null}
+      <Button variant="brand" className="h-11 self-start" onClick={() => void prikaz("Otevři mi na PC taby z telefonu.", "vse")}>
+        <Monitor /> {poslano === "vse" ? "Posláno na PC" : "Otevřít vše na PC"}
+      </Button>
       {chyba ? <p className="text-sm text-destructive">{chyba}</p> : null}
       {pripojeno && !taby.length && !chyba ? (
         <p className="text-sm text-muted-foreground">Zatím nic. V Kiwi musí být rozšíření S/_ave Taby přihlášené stejným účtem.</p>
