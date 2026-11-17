@@ -1,9 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { CalendarDays, Send, Settings, Sheet } from "lucide-react";
+import { CalendarDays, Globe, Send, Settings, Sheet } from "lucide-react";
 import { KalendarView } from "@/components/kalendar-view";
 import { PrikazyView } from "@/components/prikazy-view";
+import { TabyView } from "@/components/taby-view";
 import { Button } from "@/components/ui/button";
 import { SettingsView } from "@/components/settings-view";
 import { TabulkyView } from "@/components/tabulky-view";
@@ -14,12 +15,13 @@ import { cn } from "@/lib/utils";
 
 // shortcut: spojení s PC je v UI vypnuté (2026-11-03) - Rozhovor a Přehled (chat-view, overview-view,
 // slave-provider) vrátit do NAV, až uživatel řekne.
-type Tab = "kalendar" | "tabulky" | "prikaz" | "nastaveni";
+type Tab = "kalendar" | "tabulky" | "taby" | "prikaz" | "nastaveni";
 
 // Nastavení není v liště - otevírá se ozubeným kolem vpravo nahoře.
 const NAV: { id: Tab; label: string; icon: typeof Settings }[] = [
   { id: "kalendar", label: "Kalendář", icon: CalendarDays },
   { id: "tabulky", label: "Tabulky", icon: Sheet },
+  { id: "taby", label: "Taby", icon: Globe },
   { id: "prikaz", label: "Příkaz", icon: Send },
 ];
 
@@ -104,7 +106,15 @@ export function AppShell() {
           <TabulkyView otevrena={tabulka} setOtevrena={setTabulka} />
         ) : (
           <div className="min-h-0 flex-1 overflow-y-auto">
-            {tab === "kalendar" ? <KalendarView /> : tab === "prikaz" ? <PrikazyView doNastaveni={doNastaveni} /> : <SettingsView onZpet={zNastaveni} />}
+            {tab === "kalendar" ? (
+              <KalendarView />
+            ) : tab === "taby" ? (
+              <TabyView doNastaveni={doNastaveni} />
+            ) : tab === "prikaz" ? (
+              <PrikazyView doNastaveni={doNastaveni} />
+            ) : (
+              <SettingsView onZpet={zNastaveni} />
+            )}
           </div>
         )}
       </main>

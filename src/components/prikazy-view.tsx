@@ -20,8 +20,8 @@ interface Prikaz {
 const STAV: Record<Prikaz["stav"], string> = { ceka: "Čeká na PC", bezi: "PC pracuje…", hotovo: "Hotovo", chyba: "Chyba" };
 
 /**
- * Příkaz pro PC: text jde do Supabase (`prikazy`), na PC ho vezme `pc/most.mjs` a provede přes Claude Code.
- * Změny tabulek a kalendáře přijdou zpátky synchronizací; tady je vidět stav a odpověď.
+ * Příkaz pro PC: text jde do Supabase (`prikazy`), na PC ho vezme Slave (sidecar/tools/prikazy_telefon.py)
+ * a provede svými nástroji jako hlasový povel. Změny tabulek a kalendáře přijdou zpátky synchronizací.
  */
 export function PrikazyView({ doNastaveni }: { doNastaveni: () => void }) {
   const [text, setText] = React.useState("");
@@ -76,7 +76,7 @@ export function PrikazyView({ doNastaveni }: { doNastaveni: () => void }) {
       <Textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Např. Přidej do tabulky Kontakty řádek: Jan Novák, 777 123 456, nový, novak.cz"
+        placeholder="Např. Zapiš do tabulky Kontakty v telefonu do B2 777 123 456, nebo: co mám v MicroWins na dnes?"
         aria-label="Příkaz"
         className="min-h-28 text-base"
       />
